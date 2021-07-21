@@ -4,8 +4,8 @@ import { ApiListedEntity } from 'common/api/blocksync-api/types/entities'
 import blocksyncApi from 'common/api/blocksync-api/blocksync-api'
 import { ApiResource } from 'common/api/blocksync-api/types/resource'
 import { PageContent } from 'common/api/blocksync-api/types/page-content'
-import { Attestation } from 'modules/EntityClaims/types'
 import { fromBase64 } from 'js-base64'
+import { v4 as uuidv4 } from 'uuid'
 import {
   UpdateExistingEntityDidAction,
   CreateEntityTemplateActions,
@@ -15,6 +15,7 @@ import { importEntityPageContent } from '../CreateEntityPageContent/CreateEntity
 import { importEntityClaims } from '../CreateEntityClaims/CreateEntityClaims.actions'
 import { importEntitySettings } from '../CreateEntitySettings/CreateEntitySettings.actions'
 import { importEntityAdvanced } from '../CreateEntityAdvanced/CreateEntityAdvanced.actions'
+import { createLessThan } from 'typescript'
 
 const PDS_URL = process.env.REACT_APP_PDS_URL
 
@@ -40,132 +41,222 @@ export const fetchExistingEntity = (did: string) =>(
 
   fetchEntity.then((apiEntity: ApiListedEntity) => {
     return fetchContent(apiEntity.data.page.cid).then((resourceData: ApiResource) => {
-      const content: PageContent | Attestation = JSON.parse(
+      const content: PageContent = JSON.parse(
         fromBase64(resourceData.data),
       )
 
-      dispatch(importEntityPageContent({
-        "header": {
-          "title": "Enter title",
-          "shortDescription": "Enter Description",
-          "sdgs": ["2"],
-          "brand": "Enter Brand",
-          "location": "AI",
-          "headerFileSrc": "https://pds_pandora.ixo.world/public/otaq9kelrvkqqml4lf",
+      const { header, body, images, profiles, social, embedded } = content
+      let identifiers = []
+      const pageContent = {
+        header: {
+          "title": header.title,
+          "shortDescription": header.shortDescription,
+          "sdgs": header.sdgs,
+          "brand": header.brand,
+          "location": header.location,
+          "headerFileSrc": header.image,
           "headerFileUploading": false,
-          "logoFileSrc": "https://pds_pandora.ixo.world/public/7hkqhgfv67ckqqmler9",
+          "logoFileSrc": header.logo,
           "logoFileUploading": false
         },
-        "body": {
-          "6353af7e-d2e0-423e-ae5f-025485dc995d": {
-            "id": "6353af7e-d2e0-423e-ae5f-025485dc995d",
-            "title": "First Sectoin",
-            "content": "First Section Content",
-            "uploading": false,
-            "fileSrc": "https://pds_pandora.ixo.world/public/79waz6ae6c3kqqmlvb3"
-          },
-          "0608dc0a-2d4e-45b2-a18b-8deb7012a1f4": {
-            "id": "0608dc0a-2d4e-45b2-a18b-8deb7012a1f4",
-            "title": "Second Section",
-            "content": "Second section content",
-            "uploading": false,
-            "fileSrc": "https://pds_pandora.ixo.world/public/xj7u61ccjhkqqmm80w"
+        body: body.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              title: item.title,
+              content: item.content,
+              fileSrc: item.image,
+              uploading: false,
           }
+          }
+        }, {}),
+        images: images.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              title: item.title,
+              content: item.content,
+              fileSrc: item.image,
+              uploading: false,
+          }
+          }
+        }, {}),
+        profiles: profiles.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              name: item.name,
+              position: item.position,
+              fileSrc: item.image,
+              uploading: false,
+          }
+          }
+        }, {}),
+        social: {
+          linkedInUrl: social.linkedInUrl,
+          facebookUrl: social.facebookUrl,
+          twitterUrl: social.twitterUrl,
+          discourseUrl: social.discourseUrl,
+          instagramUrl: social.instagramUrl,
+          telegramUrl: social.telegramUrl,
+          githubUrl: social.githubUrl,
+          otherUrl: social.otherUrl,
         },
-        "images": {
-          "c780fdc5-691e-4bd5-8b6f-ed86ea6707e3": {
-            "id": "c780fdc5-691e-4bd5-8b6f-ed86ea6707e3",
-            "title": "First Image",
-            "content": "First Image content",
-            "uploading": false,
-            "fileSrc": "https://pds_pandora.ixo.world/public/ntmw667uyhkkqqmmjm6"
+        embedded: embedded.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              title: item.title,
+              urls: item.urls,
           }
+          }
+        }, {}),
+      }
+
+      const validation = {
+        "header": {
+          "identifier": "header",
+          "validated": true,
+          "errors": []
         },
-        "profiles": {
-          "87b69a24-66b4-4de3-bfeb-d92e12bb40e3": {
-            "id": "87b69a24-66b4-4de3-bfeb-d92e12bb40e3",
-            "name": "First Profile",
-            "position": "first Position",
-            "uploading": false,
-            "fileSrc": "https://pds_pandora.ixo.world/public/lmmzgtuap8kqqmmqa0"
-          }
+        "social": {
+          "identifier": "social",
+          "validated": true,
+          "errors": []
         },
-        "social": {},
-        "embedded": {
-          "02a90c91-63c0-421f-8a3b-4b12c7945374": {
-            "id": "02a90c91-63c0-421f-8a3b-4b12c7945374",
-            "title": "Enter Title",
-            "urls": ["https://www.youtube.com/watch?v=It33dR1OTZQ"]
+        ...identifiers.reduce((obj, identifier) => {
+          return {
+            ...obj,
+            [identifier]: {
+              identifier,
+              validated: true,
+              errors: []
           }
-        },
-        "validation": {
-          "header": {
-            "identifier": "header",
-            "validated": true,
-            "errors": []
-          },
-          "6353af7e-d2e0-423e-ae5f-025485dc995d": {
-            "identifier": "6353af7e-d2e0-423e-ae5f-025485dc995d",
-            "validated": true,
-            "errors": []
-          },
-          "0608dc0a-2d4e-45b2-a18b-8deb7012a1f4": {
-            "identifier": "0608dc0a-2d4e-45b2-a18b-8deb7012a1f4",
-            "validated": true,
-            "errors": []
-          },
-          "c780fdc5-691e-4bd5-8b6f-ed86ea6707e3": {
-            "identifier": "c780fdc5-691e-4bd5-8b6f-ed86ea6707e3",
-            "validated": true,
-            "errors": []
-          },
-          "87b69a24-66b4-4de3-bfeb-d92e12bb40e3": {
-            "identifier": "87b69a24-66b4-4de3-bfeb-d92e12bb40e3",
-            "validated": true,
-            "errors": []
-          },
-          "social": {
-            "identifier": "social",
-            "validated": true,
-            "errors": []
-          },
-          "02a90c91-63c0-421f-8a3b-4b12c7945374": {
-            "identifier": "02a90c91-63c0-421f-8a3b-4b12c7945374",
-            "validated": true,
-            "errors": []
           }
-        }
+        }, {})
+      }
+
+      dispatch(importEntityPageContent({
+        validation,
+        ...pageContent
       }))
 
+      const { entityClaims } = apiEntity.data
+      identifiers = []
+
       dispatch(importEntityClaims({
-        "entityClaims": {
-          "1dd93f19-1161-49e6-8f15-11058fe2bf94": {
-            "id": "1dd93f19-1161-49e6-8f15-11058fe2bf94",
-            "template": {
-              "id": "b6f65390-4e96-4b5b-9c51-4edb0083f1ab",
-              "entityClaimId": "1dd93f19-1161-49e6-8f15-11058fe2bf94",
-              "templateId": "did:ixo:GKwvquExWzm7JUwzW5nmtH",
-              "title": "Claim",
-              "description": "1",
-              "isPrivate": false,
-              "minTargetClaims": 5,
-              "maxTargetClaims": 10,
-              "goal": "Test Goal",
-              "submissionStartDate": "22-Jul-2021",
-              "submissionEndDate": "15-Aug-2021"
-            },
-            "agentRoles": {},
-            "evaluations": {},
-            "approvalCriteria": {},
-            "enrichments": {}
+        "entityClaims": entityClaims.items.reduce((obj, entityClaim) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              template: {
+                id: uuid,
+                entityClaimId: uuidv4(),
+                templateId: entityClaim['@id'],
+                title: entityClaim.title,
+                description: entityClaim.description,
+                isPrivate: entityClaim.visibility !== "Public",
+                minTargetClaims: entityClaim.targetMin,
+                maxTargetClaims: entityClaim.targetMax,
+                goal: entityClaim.goal,
+                submissionStartDate: entityClaim.startDate,
+                submissionEndDate: entityClaim.endDate
+              },
+              agentRoles: entityClaim.agents.reduce((obj, agent) => {
+                const uuid = uuidv4()
+                identifiers.push(uuid)
+
+                return {
+                  ...obj,
+                  [uuid]: {
+                    id: uuid,
+                    entityClaimId: entityClaim['@id'],
+                    role: agent.role,
+                    autoApprove: agent.autoApprove,
+                    credential: agent.credential
+                  }
+                }
+              }, {}),
+              evaluations: entityClaim.claimEvaluation.reduce((obj, evaluation) => {
+                const uuid = uuidv4()
+                identifiers.push(uuid)
+
+                return {
+                  ...obj,
+                  [uuid]: {
+                    id: uuid,
+                    entityClaimId: entityClaim['@id'],
+                    context: evaluation['@context'],
+                    contextLink: evaluation['@context'],
+                    evaluationAttributes: evaluation.attributes,
+                    evaluationMethodology: evaluation.methodology
+                  }
+                }
+              }, {}),
+              approvalCriteria: entityClaim.claimApproval.reduce((obj, approval) => {
+                const uuid = uuidv4()
+                identifiers.push(uuid)
+
+                return {
+                  ...obj,
+                  [uuid]: {
+                    id: uuid,
+                    entityClaimId: entityClaim['@id'],
+                    context: approval['@context'],
+                    contextLink: approval['@context'],
+                    approvalAttributes: approval.criteria
+                  }
+                }
+              }, {}),
+              enrichments: entityClaim.claimEnrichment.reduce((obj, enrichment) => {
+                const uuid = uuidv4()
+                identifiers.push(uuid)
+
+                return {
+                  ...obj,
+                  [uuid]: {
+                    id: uuid,
+                    entityClaimId: entityClaim['@id'],
+                    context: enrichment['@context'],
+                    contextLink: enrichment['@context'],
+                    resources: enrichment.resources
+                  }
+                }
+              }, {})
+            }
           }
-        },
+        }, {}),
         "validation": {
-          "b6f65390-4e96-4b5b-9c51-4edb0083f1ab": {
-            "identifier": "b6f65390-4e96-4b5b-9c51-4edb0083f1ab",
-            "validated": true,
-            "errors": []
-          },
+          ...identifiers.reduce((obj, identifier) => {
+            return {
+              ...obj,
+              [identifier]: {
+                identifier,
+                validated: true,
+                errors: []
+              }
+            }
+
+          }, {}),
           "creator": {
             "identifier": "creator",
             "validated": true,
@@ -208,59 +299,81 @@ export const fetchExistingEntity = (did: string) =>(
           }
         }
       }))
+
+
+      const { creator, owner, startDate, endDate, stage, version, terms, privacy, ddoTags, displayCredentials, headlineMetric, embeddedAnalytics, linkedEntities, funding, fees, stake, nodes, keys, service, data } = apiEntity.data
+      identifiers = []
 
       dispatch(importEntitySettings({
         "creator": {
-          "displayName": "Enter Ttile",
-          "location": "AI",
-          "email": "test@test.com",
-          "website": "https://test.com",
-          "mission": "1234",
-          "creatorId": "1234",
-          "fileSrc": "https://pds_pandora.ixo.world/public/ff7s55prehskqqodwbs",
+          "displayName": creator.displayName,
+          "location": creator.location,
+          "email": creator.email,
+          "website": creator.website,
+          "mission": creator.mission,
+          "creatorId": creator.id,
+          "fileSrc": creator.logo,
           "uploading": false
         },
         "owner": {
-          "displayName": "Enter Ttile",
-          "location": "AI",
-          "email": "test@test.com",
-          "website": "https://test.com",
-          "mission": "1234",
-          "ownerId": "1234",
-          "fileSrc": "https://pds_pandora.ixo.world/public/ff7s55prehskqqodwbs",
+          "displayName": owner.displayName,
+          "location": owner.location,
+          "email": owner.email,
+          "website": owner.website,
+          "mission": owner.mission,
+          "ownerId": owner.id,
+          "fileSrc": owner.logo,
           "uploading": false
         },
         "status": {
-          "startDate": "23-Jul-2021",
-          "endDate": "19-Aug-2021",
-          "stage": "Paused"
+          "startDate": startDate,
+          "endDate": endDate,
+          "stage": stage,
         },
         "version": {
-          "versionNumber": "11",
-          "effectiveDate": "21-Jul-2021"
+          "versionNumber": version.versionNumber,
+          "effectiveDate": version.effectiveDate
         },
         "termsOfUse": {
-          "type": "OnceOffFee",
-          "paymentTemplateId": "1234124214"
+          "type": terms['@type'],
+          "paymentTemplateId": terms.paymentTemplateId
         },
         "privacy": {
-          "pageView": "Public",
-          "entityView": "Visible"
+          "pageView": privacy.pageView,
+          "entityView": privacy.entityView
         },
         "requiredCredentials": {},
         "filters": {
-          "Project Type": ["Behaviour Change"],
-          "SDG": ["SDG4 – Quality Education"],
-          "Stage": ["Planning"],
-          "Sector": ["Relayer Launchpad"]
+          "Project Type": ddoTags[0].tags,
+          "SDG": ddoTags[1].tags,
+          "Stage": ddoTags[2].tags,
+          "Sector": ddoTags[3].tags
         },
-        "displayCredentials": {},
+        "displayCredentials": displayCredentials.items.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              credential: item.credential,
+              badge: item.badge
+          }
+          }
+        }, {}),
         "validation": {
-          "b6f65390-4e96-4b5b-9c51-4edb0083f1ab": {
-            "identifier": "b6f65390-4e96-4b5b-9c51-4edb0083f1ab",
-            "validated": true,
-            "errors": []
-          },
+          ...identifiers.reduce((obj, identifier) => {
+            return {
+              ...obj,
+              [identifier]: {
+                identifier,
+                validated: true,
+                errors: []
+              }
+            }
+
+          }, {}),
           "creator": {
             "identifier": "creator",
             "validated": true,
@@ -302,27 +415,153 @@ export const fetchExistingEntity = (did: string) =>(
             "errors": []
           }
         },
-        "headlineTemplateId": "did:ixo:GKwvquExWzm7JUwzW5nmtH",
-        "embeddedAnalytics": {}
+        "headlineTemplateId": headlineMetric.claimTemplateId,
+        "embeddedAnalytics": embeddedAnalytics.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              title: item.title,
+              urls: item.urls
+          }
+          }
+        }, {})
       }))
 
+      identifiers = []
       dispatch(importEntityAdvanced({
-        "linkedEntities": {},
-        "payments": {},
-        "staking": {},
-        "nodes": {
-          "1c0c9186-9a02-4c1b-af00-b33962c01459": {
-            "id": "1c0c9186-9a02-4c1b-af00-b33962c01459",
-            "type": "CellNode",
-            "nodeId": "12341234",
-            "serviceEndpoint": "https://pds_pandora.ixo.world"
+        "linkedEntities": linkedEntities.reduce((obj, linkedEntity) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              type: linkedEntity['@type'],
+              entityId: linkedEntity.id
+            }
           }
-        },
-        "funding": {},
-        "keys": {},
-        "services": {},
-        "dataResources": {},
-        "validation": {}
+        }, {}),
+        "payments": fees.items.reduce((obj, fee) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              type: fee['@type'],
+              paymentId: fee.id
+            }
+          }
+        }, {}),
+        "staking": stake.items.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            ...obj,
+            [uuid]: {
+              id: uuid,
+              stakeId: item.id,
+              type: item['@type'],
+              denom: item.denom,
+              stakeAddress: item.stakeAddress,
+              minStake: item.minStake,
+              slashCondition: item.slashCondition,
+              slashFactor: item.slashFactor,
+              slashAmount: item.slashAmount,
+              unbondPeriod: item.unbondPeriod
+            }
+          }
+        }, {}) ,
+        "nodes": nodes.items.reduce((obj, node) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            [uuid]: {
+              id: uuid,
+              type: node['@type'],
+              nodeId: node.id,
+              serviceEndpoint: node.serviceEndpoint
+            }
+          }
+        }, {}),
+        "funding": funding.items.reduce((obj, fund) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            [uuid]: {
+              id: uuid,
+              source: fund['@type'],
+              fundId: fund.id
+            }
+          }
+        }, {}),
+        "keys": keys.items.reduce((obj, key) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            [uuid]: {
+              id: uuid,
+              purpose: key.purpose,
+              type: key['@type'],
+              keyValue: key.keyValue,
+              controller: key.controller,
+              signature: key.signature,
+              dateCreated: key.dateCreated,
+              dateUpdated: key.dateUpdated
+            }
+          }
+        }, {}),
+        "services": service.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            [uuid]: {
+              id: uuid,
+              type: item['@type'],
+              shortDescription: item.description,
+              serviceEndpoint: item.serviceEndpoint,
+              publicKey: item.publicKey,
+              properties: item.properties,
+              serviceId: item.id
+            }
+          }
+        }, {}),
+        "dataResources": data.reduce((obj, item) => {
+          const uuid = uuidv4()
+          identifiers.push(uuid)
+
+          return {
+            [uuid]: {
+              id: uuid,
+              type: item['@type'],
+              dataId: item.id,
+              serviceEndpoint: item.serviceEndpoint,
+              properties: item.properties
+            }
+          }
+        }, {}),
+        "validation": identifiers.reduce((obj, identifier) => {
+          return {
+            ...obj,
+            [identifier]: {
+              identifier,
+              validated: true,
+              errors: []
+            }
+          }
+
+        }, {})
       }))
     })
   }).catch((err) => {
