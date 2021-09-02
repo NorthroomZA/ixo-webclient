@@ -1,21 +1,31 @@
 import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'common/redux/types'
 import GovernanceTable from './components/GovernanceTable'
 import {
   Container,
   SectionTitleContainer,
   SectionTitle,
 } from '../EntityEconomy.styles'
-import GovernanceProposal, { ProposalType } from './components/GovernanceProposal'
+import GovernanceProposal, {
+  ProposalType,
+} from './components/GovernanceProposal'
 import { getProposals } from '../EntityEconomy.actions'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
+  const {
+    governance: { proposals },
+  } = useSelector((state: RootState) => state.economy)
 
   useEffect(() => {
     dispatch(getProposals())
     // eslint-disable-next-line
   }, [])
+
+  useEffect(() => {
+    console.log(proposals)
+  }, [proposals])
   return (
     <Container>
       <SectionTitleContainer>
