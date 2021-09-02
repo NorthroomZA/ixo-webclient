@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import GovernanceTable from './components/GovernanceTable'
 import {
   Container,
@@ -6,8 +7,15 @@ import {
   SectionTitle,
 } from '../EntityEconomy.styles'
 import GovernanceProposal, { ProposalType } from './components/GovernanceProposal'
+import { getProposals } from '../EntityEconomy.actions'
 
 const EconomyGovernance: React.FunctionComponent = () => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(getProposals())
+    // eslint-disable-next-line
+  }, [])
   return (
     <Container>
       <SectionTitleContainer>
