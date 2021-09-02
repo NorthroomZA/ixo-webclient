@@ -1,7 +1,7 @@
 import { Dispatch } from 'redux'
 import Axios from 'axios'
 import { EntityEconomyActions, GetProposalsAction } from './types'
-import { mapProposals } from './utils'
+import { mapProposalToRedux } from './utils'
 
 export const getProposals = () => (dispatch: Dispatch): GetProposalsAction => {
   return dispatch({
@@ -12,7 +12,7 @@ export const getProposals = () => (dispatch: Dispatch): GetProposalsAction => {
       .then(response => response.data)
       .then(response => {
         const { proposals } = response
-        return proposals.map(proposal => mapProposals(proposal))
+        return proposals.map(proposal => mapProposalToRedux(proposal))
       })
       .catch(() => []),
   })

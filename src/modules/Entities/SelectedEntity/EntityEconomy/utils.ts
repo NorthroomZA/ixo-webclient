@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { ProposalsType } from './types'
 
-export const mapProposals = (proposal: any): ProposalsType => {
+export const mapProposalToRedux = (proposal: any): ProposalsType => {
     const {
         proposal_id,
         content,
