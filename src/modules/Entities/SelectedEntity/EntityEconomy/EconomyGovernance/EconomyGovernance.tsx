@@ -24,9 +24,13 @@ const EconomyGovernance: React.FunctionComponent = () => {
 
   useEffect(() => {
     if (governance && governance.proposals) {
-      if (governance.proposals[0].proposer) return;
+      if (governance.proposals[0].proposer) return
       dispatch(
-        getProposers(governance.proposals.map((proposal: ProposalsType) => proposal.proposalId)),
+        getProposers(
+          governance.proposals.map(
+            (proposal: ProposalsType) => proposal.proposalId,
+          ),
+        ),
       )
     }
     // eslint-disable-next-line
@@ -38,20 +42,27 @@ const EconomyGovernance: React.FunctionComponent = () => {
         <SectionTitle>Current Governance Proposals</SectionTitle>
       </SectionTitleContainer>
 
-      {governance && governance.proposals && governance.proposals.map((proposal: ProposalsType, i: number) => (
-        <GovernanceProposal
-          key={i}
-          proposalId={proposal.proposalId}
-          type={ProposalType.Membership}
-          announce={proposal.content.title}
-          proposedBy={proposal.proposer}
-          submissionDate={proposal.submitTime}
-          closeDate={proposal.DepositEndTime}
-          votes={230}
-          available={280}
-          totalDeposit={proposal.totalDeposit[0]}
-        />
-      ))}
+      {governance &&
+        governance.proposals &&
+        governance.proposals.map((proposal: ProposalsType, i: number) => (
+          <GovernanceProposal
+            key={i}
+            proposalId={proposal.proposalId}
+            type={ProposalType.Membership}
+            announce={proposal.content.title}
+            proposedBy={proposal.proposer}
+            submissionDate={proposal.submitTime}
+            closeDate={proposal.DepositEndTime}
+            votes={proposal.tally.yes}
+            available={
+              Number(proposal.tally.yes) +
+              Number(proposal.tally.no) +
+              Number(proposal.tally.noWithVeto) +
+              Number(proposal.tally.abstain)
+            }
+            totalDeposit={proposal.totalDeposit[0]}
+          />
+        ))}
 
       <SectionTitleContainer>
         <SectionTitle>Past Governance Proposals</SectionTitle>

@@ -24,6 +24,7 @@ import { RootState } from 'common/redux/types'
 import { useSelector } from 'react-redux'
 import { getBalanceNumber } from 'common/utils/currency.utils'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import { thousandSeparator } from 'common/utils/formatters'
 
 const Container = styled.div`
   background: linear-gradient(180deg, #ffffff 0%, #f2f5fb 100%);
@@ -107,8 +108,8 @@ interface GovernanceProposalProps {
   proposedBy: string
   submissionDate: string
   closeDate: string
-  votes: any
-  available: number
+  votes: string | number
+  available: string | number
   totalDeposit: Coin
 }
 
@@ -209,7 +210,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               <br />
               <LabelLG style={{ cursor: 'pointer' }} title='Click to copy'>
                 <CopyToClipboard text={proposedBy}>
-                  <span>{proposedBy.substring(0, 10)}...</span>
+                  <span>{proposedBy.substring(0, 10)}{proposedBy && '...'}</span>
                 </CopyToClipboard>
               </LabelLG>
             </div>
@@ -256,8 +257,8 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             </div>
           </div>
 
-          <LabelSM className='bold'>{votes} YES</LabelSM>
-          <LabelSM>{`(of ${available} available)`}</LabelSM>
+          <LabelSM className='bold'>{thousandSeparator(votes)} YES</LabelSM>
+          <LabelSM>{`(of ${thousandSeparator(available)} available)`}</LabelSM>
         </div>
         <div className='col-12 col-sm-6'>
           <WidgetWrapper

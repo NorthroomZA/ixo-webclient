@@ -16,7 +16,12 @@ export const mapProposalToRedux = (proposal: any): ProposalsType => {
         proposalId: proposal_id,
         proposer: '',   //  get from    /gov/proposals/{proposalId}/proposer
         content: content,
-        tally: final_tally_result,
+        tally: {
+            yes: final_tally_result.yes,
+            no: final_tally_result.no,
+            noWithVeto: final_tally_result.no_with_veto,
+            abstain: final_tally_result.abstain,
+        },
         status: status,
         totalDeposit: total_deposit,
         submitTime: submit_time,
