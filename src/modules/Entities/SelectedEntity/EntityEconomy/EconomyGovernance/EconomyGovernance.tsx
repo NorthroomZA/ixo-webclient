@@ -37,11 +37,15 @@ const EconomyGovernance: React.FunctionComponent = () => {
     // eslint-disable-next-line
   }, [governance])
 
+  const handleNewProposal = () => {
+    
+  }
+
   return (
     <Container>
       <SectionTitleContainer>
         <SectionTitle>Current Governance Proposals</SectionTitle>
-        <ActionButton>New Proposal</ActionButton>
+        <ActionButton onClick={handleNewProposal}>New Proposal</ActionButton>
       </SectionTitleContainer>
 
       {governance &&
