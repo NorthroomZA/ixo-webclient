@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { ProposalsType } from './types'
 
 export const mapProposalToRedux = (proposal: any): ProposalsType => {
@@ -20,9 +19,9 @@ export const mapProposalToRedux = (proposal: any): ProposalsType => {
         tally: final_tally_result,
         status: status,
         totalDeposit: total_deposit,
-        submitTime: moment(submit_time),
-        DepositEndTime: moment(deposit_end_time),
-        votingStartTime: moment(voting_start_time),
-        votingEndTime: moment(voting_end_time),
+        submitTime: submit_time,
+        DepositEndTime: deposit_end_time,
+        votingStartTime: voting_start_time,
+        votingEndTime: voting_end_time,
     }
 }

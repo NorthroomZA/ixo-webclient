@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
 import GovernanceTable from './components/GovernanceTable'
@@ -10,13 +10,12 @@ import {
 import GovernanceProposal, {
   ProposalType,
 } from './components/GovernanceProposal'
-import { getProposals } from '../EntityEconomy.actions'
+import { getProposals, getProposers } from '../EntityEconomy.actions'
+import { ProposalsType, VoteStatus } from '../types'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
-  const {
-    governance: { proposals },
-  } = useSelector((state: RootState) => state.economy)
+  const { governance } = useSelector((state: RootState) => state.economy)
 
   useEffect(() => {
     dispatch(getProposals())
@@ -24,38 +23,35 @@ const EconomyGovernance: React.FunctionComponent = () => {
   }, [])
 
   useEffect(() => {
-    console.log(proposals)
-  }, [proposals])
+    if (governance && governance.proposals) {
+      if (governance.proposals[0].proposer) return;
+      dispatch(
+        getProposers(governance.proposals.map((proposal: ProposalsType) => proposal.proposalId)),
+      )
+    }
+    // eslint-disable-next-line
+  }, [governance])
+
   return (
     <Container>
       <SectionTitleContainer>
         <SectionTitle>Current Governance Proposals</SectionTitle>
       </SectionTitleContainer>
 
-      <GovernanceProposal
-        no={999}
-        type={ProposalType.Membership}
-        announce={'Extend the project end-date to September 2020'}
-        remain={412}
-        proposedBy={'Shaun Conway'}
-        submissionDate={'2020-06-23 16:23'}
-        closeDate={'2020-08-24 16:30'}
-        votes={230}
-        available={280}
-        myVote={false}
-      />
-      <GovernanceProposal
-        no={4}
-        type={ProposalType.Budget}
-        announce={'Issue an Alpha Bond for $100,000'}
-        remain={0}
-        proposedBy={'Shaun Conway'}
-        submissionDate={'2020-04-01 10:00'}
-        closeDate={'2020-04-21 10:00'}
-        votes={230}
-        available={280}
-        myVote={true}
-      />
+      {governance && governance.proposals && governance.proposals.map((proposal: ProposalsType, i: number) => (
+        <GovernanceProposal
+          key={i}
+          proposalId={proposal.proposalId}
+          type={ProposalType.Membership}
+          announce={proposal.content.title}
+          remain={412}
+          proposedBy={proposal.proposer}
+          submissionDate={proposal.submitTime}
+          closeDate={proposal.DepositEndTime}
+          votes={230}
+          available={280}
+        />
+      ))}
 
       <SectionTitleContainer>
         <SectionTitle>Past Governance Proposals</SectionTitle>

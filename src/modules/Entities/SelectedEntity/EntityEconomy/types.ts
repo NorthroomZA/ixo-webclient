@@ -1,4 +1,3 @@
-import { Moment } from 'moment'
 
 export interface EconomyState {
   governance: GovernanceState
@@ -11,7 +10,11 @@ export interface GovernanceState {
 
 export enum ProposalStatus {
   PROPOSAL_STATUS_REJECTED = 'PROPOSAL_STATUS_REJECTED',
-  PROPOSAL_STATUS_DEPOSIT_PERIOD = 'PROPOSAL_STATUS_DEPOSIT_PERIOD'
+  PROPOSAL_STATUS_DEPOSIT_PERIOD = 'PROPOSAL_STATUS_DEPOSIT_PERIOD',
+  PROPOSAL_STATUS_UNSPECIFIED = 'PROPOSAL_STATUS_UNSPECIFIED',
+  PROPOSAL_STATUS_VOTING_PERIOD = 'PROPOSAL_STATUS_VOTING_PERIOD',
+  PROPOSAL_STATUS_PASSED = 'PROPOSAL_STATUS_PASSED',
+  PROPOSAL_STATUS_FAILED = 'PROPOSAL_STATUS_FAILED',
 }
 
 export interface TallyType {
@@ -57,10 +60,18 @@ export interface ProposalsType {
   tally: TallyType
   status: ProposalStatus
   totalDeposit: Coin[]
-  submitTime: Moment
-  DepositEndTime: Moment
-  votingStartTime: Moment
-  votingEndTime: Moment
+  submitTime: string
+  DepositEndTime: string
+  votingStartTime: string
+  votingEndTime: string
+}
+
+export enum VoteStatus {
+  VOTE_OPTION_UNSPECIFIED = 'VOTE_OPTION_UNSPECIFIED',
+  VOTE_OPTION_YES = 'VOTE_OPTION_YES',
+  VOTE_OPTION_ABSTAIN = 'VOTE_OPTION_ABSTAIN',
+  VOTE_OPTION_NO = 'VOTE_OPTION_NO',
+  VOTE_OPTION_NO_WITH_VETO = 'VOTE_OPTION_NO_WITH_VETO',
 }
 
 
@@ -70,6 +81,10 @@ export enum EntityEconomyActions {
   GetProposalsSuccess = 'ixo/Economy/GET_PROPOSALS_FULFILLED',
   GetProposalsPending = 'ixo/Economy/GET_PROPOSALS_PENDING',
   GetProposalsFailure = 'ixo/Economy/GET_PROPOSALS_REJECTED',
+  GetProposers = 'ixo/Economy/GET_PROPOSERS',
+  GetProposersSuccess = 'ixo/Economy/GET_PROPOSERS_FULFILLED',
+  GetProposersPending = 'ixo/Economy/GET_PROPOSERS_PENDING',
+  GetProposersFailure = 'ixo/Economy/GET_PROPOSERS_REJECTED',
 }
 export interface GetProposalsAction {
   type: typeof EntityEconomyActions.GetProposals
@@ -80,7 +95,18 @@ export interface GetProposalsSuccessAction {
   payload: ProposalsType[]
 }
 
+export interface GetProposersAction {
+  type: typeof EntityEconomyActions.GetProposers
+  payload: Promise<ProposalsType[]>
+}
+export interface GetProposersSuccessAction {
+  type: typeof EntityEconomyActions.GetProposersSuccess
+  payload: ProposalsType[]
+}
+
 
 export type EconomyActionTypes = 
   | GetProposalsAction
   | GetProposalsSuccessAction
+  | GetProposersAction
+  | GetProposersSuccessAction

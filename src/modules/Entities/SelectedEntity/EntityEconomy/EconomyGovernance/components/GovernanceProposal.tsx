@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import Axios from 'axios'
 import styled from 'styled-components'
 import { ProgressBar } from 'common/components/ProgressBar'
 
@@ -19,6 +20,9 @@ import {
 } from 'modules/Entities/SelectedEntity/EntityImpact/Overview/components/Dashboard/Dashboard.styles'
 import { CircleProgressbar } from 'common/components/Widgets/CircleProgressbar/CircleProgressbar'
 import moment from 'moment'
+import { VoteStatus } from '../../types'
+import { RootState } from 'common/redux/types'
+import { useSelector } from 'react-redux'
 
 const Container = styled.div`
   background: linear-gradient(180deg, #ffffff 0%, #f2f5fb 100%);
@@ -81,8 +85,8 @@ const Action = styled.button`
 
   &.disable {
     border: transparent 1px solid;
-    background-color: #E9EDF5;
-    color: #BDBDBD;
+    background-color: #e9edf5;
+    color: #bdbdbd;
   }
 `
 
@@ -96,20 +100,19 @@ export enum ProposalType {
 }
 
 interface GovernanceProposalProps {
-  no: number
+  proposalId: number
   type: ProposalType
   announce: string
   remain: number // will be a number by min
   proposedBy: string
   submissionDate: string
   closeDate: string
-  votes: number
+  votes: any
   available: number
-  myVote: boolean
 }
 
 const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
-  no,
+  proposalId,
   type,
   announce,
   remain,
@@ -118,15 +121,35 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   closeDate,
   votes,
   available,
-  myVote,
 }) => {
+  console.log(proposedBy)
+  const { address } = useSelector((state: RootState) => state.account)
+  const [myVoteStatus, setMyVoteStatus] = useState<VoteStatus>(
+    VoteStatus.VOTE_OPTION_UNSPECIFIED,
+  )
+
+  const getMyVoteStatus = () => {
+    return Axios.get(
+      `${process.env.REACT_APP_GAIA_URL}/gov/proposals/${proposalId}/votes/${address}`,
+    )
+  }
+
+  useEffect(() => {
+    getMyVoteStatus()
+      .then(response => response.data)
+      .then(data => data.result)
+      .then(result => result.option)
+      .then(option => setMyVoteStatus(option))
+      .catch((e) => console.log(e))
+    // eslint-disable-next-line
+  }, [])
   return (
     <Container className='container-fluid'>
       <div className='row'>
         <div className='col-12 col-sm-6'>
           <div className='d-flex align-items-center justify-content-between pb-3'>
             <div>
-              <NumberBadget>#{no}</NumberBadget>
+              <NumberBadget>#{proposalId}</NumberBadget>
               <TypeBadget>{type}</TypeBadget>
             </div>
             <div>
@@ -152,7 +175,9 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
 
           <div className='text-right'>
             <LabelSM className='bold'>{remain > 0 && '5d 6h 23m '}</LabelSM>
-            <LabelSM>{remain > 0 ? 'remaining' : 'Voting period is now closed'}</LabelSM>
+            <LabelSM>
+              {remain > 0 ? 'remaining' : 'Voting period is now closed'}
+            </LabelSM>
           </div>
 
           <div className='row'>
@@ -164,27 +189,36 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             <div className='col-6 pb-3'>
               <LabelSM>Submission Date</LabelSM>
               <br />
-              <LabelLG>{moment(submissionDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}</LabelLG>
+              <LabelLG>
+                {moment(submissionDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
+              </LabelLG>
             </div>
             <div className='col-6 pb-3'>
               <LabelSM>{remain > 0 ? 'Closes' : 'Closed'}</LabelSM>
               <br />
-              <LabelLG>{moment(closeDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}</LabelLG>
+              <LabelLG>
+                {moment(closeDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
+              </LabelLG>
             </div>
           </div>
 
           <div className='d-flex justify-content-between align-items-center pt-2'>
-            <Action className={myVote ? 'disable' : ''}>{myVote ? 'My Vote' : 'New Vote'}</Action>
+            <Action
+              className={
+                myVoteStatus === VoteStatus.VOTE_OPTION_YES ? 'disable' : ''
+              }
+            >
+              {myVoteStatus === VoteStatus.VOTE_OPTION_YES
+                ? 'My Vote'
+                : 'New Vote'}
+            </Action>
             <div>
               <DecisionIMG
                 className='pr-2'
                 src={IMG_decision_textfile}
                 alt='decision1'
               />
-              <DecisionIMG
-                src={IMG_decision_pdf}
-                alt='decision2'
-              />
+              <DecisionIMG src={IMG_decision_pdf} alt='decision2' />
             </div>
           </div>
 
@@ -198,13 +232,13 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             light={true}
             padding={false}
           >
-            <ClaimsWidget className="p-0 m-0">
+            <ClaimsWidget className='p-0 m-0'>
               <ClaimsLabels>
-                <div className="pl-0">
+                <div className='pl-0'>
                   <SectionHeader>
                     <strong>Current status: Proposal Passes</strong>
                   </SectionHeader>
-                  <div className="pl-4">
+                  <div className='pl-4'>
                     <p>
                       <strong>{567}</strong> Yes (64%)
                     </p>
