@@ -6,6 +6,7 @@ import {
   Container,
   SectionTitleContainer,
   SectionTitle,
+  ActionButton,
 } from '../EntityEconomy.styles'
 import GovernanceProposal, {
   ProposalType,
@@ -40,6 +41,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
     <Container>
       <SectionTitleContainer>
         <SectionTitle>Current Governance Proposals</SectionTitle>
+        <ActionButton>New Proposal</ActionButton>
       </SectionTitleContainer>
 
       {governance &&

@@ -148,9 +148,14 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
     return `${coin.amount} ${coin.denom}`
   }
 
-  const formatPercentage = (limit: number, value: number): string => {
-    if (!limit) return '0'
-    return (value / limit * 100).toFixed(0)
+  const calcPercentage = (limit: number, value: number): number => {
+    if (!limit) return 0
+    return Number(((value / limit) * 100).toFixed(0))
+  }
+
+  const formatDiffTresholds = (value: number): string => {
+    if (value >= 0) return `+ ${value}`
+    return `- ${Math.abs(value)}`
   }
 
   useEffect(() => {
@@ -213,7 +218,10 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               <br />
               <LabelLG style={{ cursor: 'pointer' }} title='Click to copy'>
                 <CopyToClipboard text={proposedBy}>
-                  <span>{proposedBy.substring(0, 10)}{proposedBy && '...'}</span>
+                  <span>
+                    {proposedBy.substring(0, 10)}
+                    {proposedBy && '...'}
+                  </span>
                 </CopyToClipboard>
               </LabelLG>
             </div>
@@ -261,7 +269,9 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
           </div>
 
           <LabelSM className='bold'>{thousandSeparator(tally.yes)} YES</LabelSM>
-          <LabelSM>{`(of ${thousandSeparator(tally.available)} available)`}</LabelSM>
+          <LabelSM>{`(of ${thousandSeparator(
+            tally.available,
+          )} available)`}</LabelSM>
         </div>
         <div className='col-12 col-sm-6'>
           <WidgetWrapper
@@ -278,16 +288,20 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                   </SectionHeader>
                   <div className='pl-4'>
                     <p>
-                      <strong>{tally.yes}</strong> Yes ({formatPercentage(tally.available, tally.yes)}%)
+                      <strong>{tally.yes}</strong> Yes (
+                      {calcPercentage(tally.available, tally.yes)}%)
                     </p>
                     <p>
-                      <strong>{tally.no}</strong> No ({formatPercentage(tally.available, tally.no)}%)
+                      <strong>{tally.no}</strong> No (
+                      {calcPercentage(tally.available, tally.no)}%)
                     </p>
                     <p>
-                      <strong>{tally.noWithVeto}</strong> No with Veto ({formatPercentage(tally.available, tally.noWithVeto)}%)
+                      <strong>{tally.noWithVeto}</strong> No with Veto (
+                      {calcPercentage(tally.available, tally.noWithVeto)}%)
                     </p>
                     <p>
-                      <strong>{tally.abstain}</strong> have not yet voted ({formatPercentage(tally.available, tally.abstain)}%)
+                      <strong>{tally.abstain}</strong> have not yet voted (
+                      {calcPercentage(tally.available, tally.abstain)}%)
                     </p>
                   </div>
                 </div>
@@ -300,10 +314,20 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                       <strong>+ 10</strong>% more than the quorum of 40%
                     </div>
                     <div>
-                      <strong>+ 14</strong>% in favour over the 50% required
+                      <strong>
+                        {formatDiffTresholds(
+                          50 - calcPercentage(tally.available, tally.yes),
+                        )}
+                      </strong>
+                      % in favour over the 50% required
                     </div>
                     <div>
-                      <strong>- 7</strong>% under the 15% required to veto
+                      <strong>
+                        {formatDiffTresholds(
+                          33 - calcPercentage(tally.available, tally.noWithVeto),
+                        )}
+                      </strong>
+                      % under the 33% required to veto
                     </div>
                   </div>
                 </div>
