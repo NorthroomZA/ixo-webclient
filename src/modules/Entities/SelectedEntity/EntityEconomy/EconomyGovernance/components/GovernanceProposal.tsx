@@ -3,7 +3,7 @@ import Axios from 'axios'
 import styled from 'styled-components'
 import { ProgressBar } from 'common/components/ProgressBar'
 
-import IMG_message from 'assets/images/eco/message.svg'
+import IMG_expand from 'assets/images/eco/icon-expand.svg'
 import IMG_wait from 'assets/images/eco/wait.svg'
 
 import IMG_decision_textfile from 'assets/images/eco/decision/textfile.svg'
@@ -103,7 +103,6 @@ interface GovernanceProposalProps {
   proposalId: number
   type: ProposalType
   announce: string
-  remain: number // will be a number by min
   proposedBy: string
   submissionDate: string
   closeDate: string
@@ -115,23 +114,29 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   proposalId,
   type,
   announce,
-  remain,
   proposedBy,
   submissionDate,
   closeDate,
   votes,
   available,
 }) => {
-  console.log(proposedBy)
   const { address } = useSelector((state: RootState) => state.account)
   const [myVoteStatus, setMyVoteStatus] = useState<VoteStatus>(
     VoteStatus.VOTE_OPTION_UNSPECIFIED,
   )
+  const [votingPeriod, setVotingPeriod] = useState<number>(0)
+  const [votingRemain, setVotingRemain] = useState<number>(0)
 
   const getMyVoteStatus = () => {
     return Axios.get(
       `${process.env.REACT_APP_GAIA_URL}/gov/proposals/${proposalId}/votes/${address}`,
     )
+  }
+
+  const myFormat = (min) => {
+    var x = moment.utc(min*60*1000);
+    var dayNum: number = Number(x.format('D')) - 1;
+    return `${('0'+dayNum).slice(-2)}d ${x.format('H[h] mm[m]')} `;
   }
 
   useEffect(() => {
@@ -140,9 +145,13 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
       .then(data => data.result)
       .then(result => result.option)
       .then(option => setMyVoteStatus(option))
-      .catch((e) => console.log(e))
+      .catch(e => console.log(e))
+
+    setVotingPeriod(moment.utc(closeDate).diff(moment.utc(submissionDate), 'minutes'))
+    setVotingRemain(moment.utc(closeDate).diff(moment().utc(), 'minutes'))
     // eslint-disable-next-line
   }, [])
+
   return (
     <Container className='container-fluid'>
       <div className='row'>
@@ -153,7 +162,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               <TypeBadget>{type}</TypeBadget>
             </div>
             <div>
-              <img src={IMG_message} alt='message' height='30px' />
+              <img src={IMG_expand} alt='message' height='30px' />
             </div>
           </div>
 
@@ -163,8 +172,8 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             <img src={IMG_wait} alt='remain' height='20px' />
             <div className='d-inline-block w-100 pl-3'>
               <ProgressBar
-                total={1000}
-                approved={remain}
+                total={votingPeriod}
+                approved={votingRemain}
                 rejected={0}
                 height={22}
                 activeBarColor='#39c3e6'
@@ -174,9 +183,11 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
           </div>
 
           <div className='text-right'>
-            <LabelSM className='bold'>{remain > 0 && '5d 6h 23m '}</LabelSM>
+            <LabelSM className='bold'>
+              {votingRemain > 0 && myFormat(votingRemain)}
+            </LabelSM>
             <LabelSM>
-              {remain > 0 ? 'remaining' : 'Voting period is now closed'}
+              {votingRemain > 0 ? 'remaining' : 'Voting period is now closed'}
             </LabelSM>
           </div>
 
@@ -190,14 +201,14 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               <LabelSM>Submission Date</LabelSM>
               <br />
               <LabelLG>
-                {moment(submissionDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
+                {moment.utc(submissionDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
               </LabelLG>
             </div>
             <div className='col-6 pb-3'>
-              <LabelSM>{remain > 0 ? 'Closes' : 'Closed'}</LabelSM>
+              <LabelSM>{votingRemain > 0 ? 'Closes' : 'Closed'}</LabelSM>
               <br />
               <LabelLG>
-                {moment(closeDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
+                {moment.utc(closeDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
               </LabelLG>
             </div>
           </div>

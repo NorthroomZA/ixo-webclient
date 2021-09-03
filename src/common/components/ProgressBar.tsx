@@ -57,7 +57,7 @@ export const ProgressBar: React.FunctionComponent<Props> = ({
         barColor={activeBarColor}
       />
       <Rejected style={{ width: rejectedWidth + '%' }} />
-      {rejected === 0 && <small className="pl-2 justify-content-start align-items-center d-flex position-absolute w-100 h-100">{closedText}</small>}
+      {approved <= 0 && <small className="pl-2 justify-content-start align-items-center d-flex position-absolute w-100 h-100">{closedText}</small>}
     </Bar>
   )
 }

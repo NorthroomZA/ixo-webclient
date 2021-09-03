@@ -20,7 +20,9 @@ export const reducer = (
       return {
         ...state,
         governance: {
-          proposals: action.payload,
+          proposals: action.payload.sort(
+            (a: ProposalsType, b: ProposalsType) => b.proposalId - a.proposalId,
+          ),
         },
       }
     case EntityEconomyActions.GetProposersSuccess:

@@ -44,7 +44,6 @@ const EconomyGovernance: React.FunctionComponent = () => {
           proposalId={proposal.proposalId}
           type={ProposalType.Membership}
           announce={proposal.content.title}
-          remain={412}
           proposedBy={proposal.proposer}
           submissionDate={proposal.submitTime}
           closeDate={proposal.DepositEndTime}
