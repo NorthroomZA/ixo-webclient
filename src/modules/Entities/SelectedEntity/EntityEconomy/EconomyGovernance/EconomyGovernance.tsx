@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
 import GovernanceTable from './components/GovernanceTable'
@@ -11,7 +11,7 @@ import GovernanceProposal, {
   ProposalType,
 } from './components/GovernanceProposal'
 import { getProposals, getProposers } from '../EntityEconomy.actions'
-import { ProposalsType, VoteStatus } from '../types'
+import { ProposalsType } from '../types'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
