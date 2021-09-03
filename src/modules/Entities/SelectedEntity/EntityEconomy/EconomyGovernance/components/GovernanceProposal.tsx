@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react'
 import Axios from 'axios'
 import styled from 'styled-components'
 import { ProgressBar } from 'common/components/ProgressBar'
-
+import BigNumber from 'bignumber.js'
 import IMG_expand from 'assets/images/eco/icon-expand.svg'
 import IMG_wait from 'assets/images/eco/wait.svg'
-
 import IMG_decision_textfile from 'assets/images/eco/decision/textfile.svg'
 import IMG_decision_pdf from 'assets/images/eco/decision/pdf.svg'
 import {
@@ -20,9 +19,10 @@ import {
 } from 'modules/Entities/SelectedEntity/EntityImpact/Overview/components/Dashboard/Dashboard.styles'
 import { CircleProgressbar } from 'common/components/Widgets/CircleProgressbar/CircleProgressbar'
 import moment from 'moment'
-import { VoteStatus } from '../../types'
+import { Coin, VoteStatus } from '../../types'
 import { RootState } from 'common/redux/types'
 import { useSelector } from 'react-redux'
+import { getBalanceNumber } from 'common/utils/currency.utils'
 
 const Container = styled.div`
   background: linear-gradient(180deg, #ffffff 0%, #f2f5fb 100%);
@@ -108,6 +108,7 @@ interface GovernanceProposalProps {
   closeDate: string
   votes: any
   available: number
+  totalDeposit: Coin
 }
 
 const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
@@ -119,6 +120,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   closeDate,
   votes,
   available,
+  totalDeposit,
 }) => {
   const { address } = useSelector((state: RootState) => state.account)
   const [myVoteStatus, setMyVoteStatus] = useState<VoteStatus>(
@@ -133,10 +135,17 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
     )
   }
 
-  const myFormat = (min) => {
+  const myFormat = (min): string => {
     var x = moment.utc(min*60*1000);
     var dayNum: number = Number(x.format('D')) - 1;
     return `${('0'+dayNum).slice(-2)}d ${x.format('H[h] mm[m]')} `;
+  }
+
+  const formatDeposit = (coin: Coin): string => {
+    if (coin.denom === 'uixo') {
+      return `${getBalanceNumber(new BigNumber(coin.amount)).toFixed(2)} IXO`
+    }
+    return `${coin.amount} ${coin.denom}`
   }
 
   useEffect(() => {
@@ -192,10 +201,15 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
           </div>
 
           <div className='row'>
-            <div className='col-12 pb-3'>
+            <div className='col-6 pb-3'>
               <LabelSM>Proposed by</LabelSM>
               <br />
-              <LabelLG>{proposedBy}</LabelLG>
+              <LabelLG>{proposedBy.substring(0, 7)}...</LabelLG>
+            </div>
+            <div className='col-6 pb-3'>
+              <LabelSM>Deposit</LabelSM>
+              <br />
+              <LabelLG>{formatDeposit(totalDeposit)}</LabelLG>
             </div>
             <div className='col-6 pb-3'>
               <LabelSM>Submission Date</LabelSM>
