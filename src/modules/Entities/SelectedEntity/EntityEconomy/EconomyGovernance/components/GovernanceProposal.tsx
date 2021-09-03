@@ -23,6 +23,7 @@ import { Coin, VoteStatus } from '../../types'
 import { RootState } from 'common/redux/types'
 import { useSelector } from 'react-redux'
 import { getBalanceNumber } from 'common/utils/currency.utils'
+import CopyToClipboard from 'react-copy-to-clipboard'
 
 const Container = styled.div`
   background: linear-gradient(180deg, #ffffff 0%, #f2f5fb 100%);
@@ -136,9 +137,9 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   }
 
   const myFormat = (min): string => {
-    var x = moment.utc(min*60*1000);
-    var dayNum: number = Number(x.format('D')) - 1;
-    return `${('0'+dayNum).slice(-2)}d ${x.format('H[h] mm[m]')} `;
+    var x = moment.utc(min * 60 * 1000)
+    var dayNum: number = Number(x.format('D')) - 1
+    return `${('0' + dayNum).slice(-2)}d ${x.format('H[h] mm[m]')} `
   }
 
   const formatDeposit = (coin: Coin): string => {
@@ -156,7 +157,9 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
       .then(option => setMyVoteStatus(option))
       .catch(e => console.log(e))
 
-    setVotingPeriod(moment.utc(closeDate).diff(moment.utc(submissionDate), 'minutes'))
+    setVotingPeriod(
+      moment.utc(closeDate).diff(moment.utc(submissionDate), 'minutes'),
+    )
     setVotingRemain(moment.utc(closeDate).diff(moment().utc(), 'minutes'))
     // eslint-disable-next-line
   }, [])
@@ -204,7 +207,11 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             <div className='col-6 pb-3'>
               <LabelSM>Proposed by</LabelSM>
               <br />
-              <LabelLG>{proposedBy.substring(0, 7)}...</LabelLG>
+              <LabelLG style={{ cursor: 'pointer' }} title='Click to copy'>
+                <CopyToClipboard text={proposedBy}>
+                  <span>{proposedBy.substring(0, 10)}...</span>
+                </CopyToClipboard>
+              </LabelLG>
             </div>
             <div className='col-6 pb-3'>
               <LabelSM>Deposit</LabelSM>
@@ -215,7 +222,9 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               <LabelSM>Submission Date</LabelSM>
               <br />
               <LabelLG>
-                {moment.utc(submissionDate).format('YYYY-MM-DD [at] HH:mm [UTC]')}
+                {moment
+                  .utc(submissionDate)
+                  .format('YYYY-MM-DD [at] HH:mm [UTC]')}
               </LabelLG>
             </div>
             <div className='col-6 pb-3'>
