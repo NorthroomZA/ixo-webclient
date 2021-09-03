@@ -19,7 +19,7 @@ import {
 } from 'modules/Entities/SelectedEntity/EntityImpact/Overview/components/Dashboard/Dashboard.styles'
 import { CircleProgressbar } from 'common/components/Widgets/CircleProgressbar/CircleProgressbar'
 import moment from 'moment'
-import { Coin, VoteStatus } from '../../types'
+import { Coin, TallyType, VoteStatus } from '../../types'
 import { RootState } from 'common/redux/types'
 import { useSelector } from 'react-redux'
 import { getBalanceNumber } from 'common/utils/currency.utils'
@@ -108,8 +108,7 @@ interface GovernanceProposalProps {
   proposedBy: string
   submissionDate: string
   closeDate: string
-  votes: string | number
-  available: string | number
+  tally: TallyType
   totalDeposit: Coin
 }
 
@@ -120,8 +119,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   proposedBy,
   submissionDate,
   closeDate,
-  votes,
-  available,
+  tally,
   totalDeposit,
 }) => {
   const { address } = useSelector((state: RootState) => state.account)
@@ -148,6 +146,11 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
       return `${getBalanceNumber(new BigNumber(coin.amount)).toFixed(2)} IXO`
     }
     return `${coin.amount} ${coin.denom}`
+  }
+
+  const formatPercentage = (limit: number, value: number): string => {
+    if (!limit) return '0'
+    return (value / limit * 100).toFixed(0)
   }
 
   useEffect(() => {
@@ -257,8 +260,8 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
             </div>
           </div>
 
-          <LabelSM className='bold'>{thousandSeparator(votes)} YES</LabelSM>
-          <LabelSM>{`(of ${thousandSeparator(available)} available)`}</LabelSM>
+          <LabelSM className='bold'>{thousandSeparator(tally.yes)} YES</LabelSM>
+          <LabelSM>{`(of ${thousandSeparator(tally.available)} available)`}</LabelSM>
         </div>
         <div className='col-12 col-sm-6'>
           <WidgetWrapper
@@ -275,16 +278,16 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                   </SectionHeader>
                   <div className='pl-4'>
                     <p>
-                      <strong>{567}</strong> Yes (64%)
+                      <strong>{tally.yes}</strong> Yes ({formatPercentage(tally.available, tally.yes)}%)
                     </p>
                     <p>
-                      <strong>{362}</strong> No (32%)
+                      <strong>{tally.no}</strong> No ({formatPercentage(tally.available, tally.no)}%)
                     </p>
                     <p>
-                      <strong>{58}</strong> No with Veto (8%)
+                      <strong>{tally.noWithVeto}</strong> No with Veto ({formatPercentage(tally.available, tally.noWithVeto)}%)
                     </p>
                     <p>
-                      <strong>{800}</strong> have not yet voted (44%)
+                      <strong>{tally.abstain}</strong> have not yet voted ({formatPercentage(tally.available, tally.abstain)}%)
                     </p>
                   </div>
                 </div>
@@ -307,10 +310,10 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
               </ClaimsLabels>
               <ProgressContainer>
                 <CircleProgressbar
-                  approved={567}
-                  rejected={362}
-                  pending={58}
-                  totalNeeded={1787}
+                  approved={tally.yes}
+                  rejected={tally.no + tally.noWithVeto}
+                  pending={tally.abstain}
+                  totalNeeded={tally.available}
                   descriptor={<>In favour of the Proposal</>}
                   percentageFormat={true}
                 />

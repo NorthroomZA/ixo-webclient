@@ -62,6 +62,7 @@ export class CircleProgressbar extends React.Component<ParentProps, State> {
   }
 
   calcPercent = (amount: number, total: number): number => {
+    if (!total) return 0
     return (amount / total) * 100
   }
 
@@ -115,7 +116,7 @@ export class CircleProgressbar extends React.Component<ParentProps, State> {
               <ApprovedText>{this.claimsCount()}</ApprovedText>
               <TotalText>/{this.props.totalNeeded}</TotalText>
             </>}
-            {this.props.percentageFormat && <ApprovedText>{(this.claimsCount() / this.props.totalNeeded * 100).toFixed(0)}%</ApprovedText>}
+            {this.props.percentageFormat && <ApprovedText>{this.calcPercent(this.claimsCount(), this.props.totalNeeded).toFixed(0)}%</ApprovedText>}
           </div>
           <Descriptor>{this.props.descriptor}</Descriptor>
         </Text>

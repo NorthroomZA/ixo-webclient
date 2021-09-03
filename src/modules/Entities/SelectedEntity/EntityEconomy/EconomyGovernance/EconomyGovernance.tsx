@@ -53,13 +53,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
             proposedBy={proposal.proposer}
             submissionDate={proposal.submitTime}
             closeDate={proposal.DepositEndTime}
-            votes={proposal.tally.yes}
-            available={
-              Number(proposal.tally.yes) +
-              Number(proposal.tally.no) +
-              Number(proposal.tally.noWithVeto) +
-              Number(proposal.tally.abstain)
-            }
+            tally={proposal.tally}
             totalDeposit={proposal.totalDeposit[0]}
           />
         ))}

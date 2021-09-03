@@ -18,10 +18,11 @@ export enum ProposalStatus {
 }
 
 export interface TallyType {
-  yes: string;
-  no: string;
-  noWithVeto: string;
-  abstain: string;
+  yes: number;
+  no: number;
+  noWithVeto: number;
+  abstain: number;
+  available: number;
 }
 
 export interface Coin {
