@@ -179,7 +179,7 @@ const renderCell = (cell: any): any => {
     return (
       <DateContainer>
         <span>{moment(cell.value).format('DD MMM YY')}</span>
-        <span>{moment(cell.value).format('HH:SS')}</span>
+        <span>{moment(cell.value).format('HH:ss')}</span>
       </DateContainer>
     )
   } else if (cell.column.id === 'buySell') {
