@@ -19,7 +19,7 @@ import {
 } from 'modules/Entities/SelectedEntity/EntityImpact/Overview/components/Dashboard/Dashboard.styles'
 import { CircleProgressbar } from 'common/components/Widgets/CircleProgressbar/CircleProgressbar'
 import moment from 'moment'
-import { Coin, TallyType, VoteStatus } from '../../types'
+import { Coin, TallyType, VoteStatus, ProposalStatus } from '../../types'
 import { RootState } from 'common/redux/types'
 import { useSelector } from 'react-redux'
 import { getBalanceNumber } from 'common/utils/currency.utils'
@@ -110,6 +110,7 @@ interface GovernanceProposalProps {
   closeDate: string
   tally: TallyType
   totalDeposit: Coin
+  status: ProposalStatus
 }
 
 const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
@@ -120,6 +121,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   submissionDate,
   closeDate,
   tally,
+  status,
   totalDeposit,
 }) => {
   const { address } = useSelector((state: RootState) => state.account)
@@ -135,7 +137,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
     )
   }
 
-  const myFormat = (min): string => {
+  const remainDateFormat = (min): string => {
     var x = moment.utc(min * 60 * 1000)
     var dayNum: number = Number(x.format('D')) - 1
     return `${('0' + dayNum).slice(-2)}d ${x.format('H[h] mm[m]')} `
@@ -173,6 +175,10 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
     // eslint-disable-next-line
   }, [])
 
+  const handleVote = () => {
+    console.log('handleVote')
+  }
+
   return (
     <Container className='container-fluid'>
       <div className='row'>
@@ -205,7 +211,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
 
           <div className='text-right'>
             <LabelSM className='bold'>
-              {votingRemain > 0 && myFormat(votingRemain)}
+              {votingRemain > 0 && remainDateFormat(votingRemain)}
             </LabelSM>
             <LabelSM>
               {votingRemain > 0 ? 'remaining' : 'Voting period is now closed'}
@@ -251,12 +257,17 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
           <div className='d-flex justify-content-between align-items-center pt-2'>
             <Action
               className={
-                myVoteStatus === VoteStatus.VOTE_OPTION_YES ? 'disable' : ''
+                status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD &&
+                myVoteStatus === VoteStatus.VOTE_OPTION_UNSPECIFIED
+                  ? ''
+                  : 'disable'
               }
+              onClick={handleVote}
             >
-              {myVoteStatus === VoteStatus.VOTE_OPTION_YES
-                ? 'My Vote'
-                : 'New Vote'}
+              {status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD &&
+              myVoteStatus === VoteStatus.VOTE_OPTION_UNSPECIFIED
+                ? 'New Vote'
+                : 'My Vote'}
             </Action>
             <div>
               <DecisionIMG
@@ -311,12 +322,23 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                   </SectionHeader>
                   <div className='pl-5'>
                     <div>
-                      <strong>+ 10</strong>% more than the quorum of 40%
+                      <strong>
+                        {formatDiffTresholds(
+                          calcPercentage(
+                            tally.available,
+                            tally.yes + tally.no + tally.noWithVeto,
+                          ) - 40,
+                        )}
+                      </strong>
+                      % more than the quorum of 40%
                     </div>
                     <div>
                       <strong>
                         {formatDiffTresholds(
-                          50 - calcPercentage(tally.available, tally.yes),
+                          calcPercentage(
+                            tally.available - tally.abstain,
+                            tally.yes,
+                          ) - 50,
                         )}
                       </strong>
                       % in favour over the 50% required
@@ -324,7 +346,11 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                     <div>
                       <strong>
                         {formatDiffTresholds(
-                          33 - calcPercentage(tally.available, tally.noWithVeto),
+                          calcPercentage(
+                            tally.available - tally.abstain,
+                            tally.noWithVeto,
+                          ) -
+                            33,
                         )}
                       </strong>
                       % under the 33% required to veto

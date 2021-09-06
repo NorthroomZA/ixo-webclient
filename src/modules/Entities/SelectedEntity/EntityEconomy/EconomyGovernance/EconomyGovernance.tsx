@@ -14,7 +14,7 @@ import GovernanceProposal, {
   ProposalType,
 } from './components/GovernanceProposal'
 import { getProposals, getProposers } from '../EntityEconomy.actions'
-import { ProposalsType } from '../types'
+import { ProposalStatus, ProposalsType } from '../types'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
@@ -39,6 +39,49 @@ const EconomyGovernance: React.FunctionComponent = () => {
     // eslint-disable-next-line
   }, [governance])
 
+  const calcPercentage = (limit: number, value: number): number => {
+    if (!limit) return 0
+    return Number(((value / limit) * 100).toFixed(0))
+  }
+
+  const mapToGovernanceTable = (proposals: ProposalsType[]): GovernanceTableRow[] => {
+    return proposals.map((proposal: ProposalsType): GovernanceTableRow => {
+      const { status, tally, proposalId, submitTime, content } = proposal
+
+      console.log(status, 'status')
+      let result = ''
+      switch (status) {
+        case ProposalStatus.PROPOSAL_STATUS_PASSED:
+          result += `Passed (${calcPercentage(tally.available - tally.abstain, tally.yes)})`
+          break;
+        case ProposalStatus.PROPOSAL_STATUS_FAILED:
+          result += `Failed (${calcPercentage(tally.available - tally.abstain, tally.yes)})`
+          break;
+        case ProposalStatus.PROPOSAL_STATUS_REJECTED:
+          result += `Vetoed (${calcPercentage(tally.available - tally.abstain, tally.noWithVeto)})`
+          break;
+        case ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED:
+          result += `No Quorum`
+          break;
+        case ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD:
+          break;
+        case ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD:
+          break;
+        default:
+          break;
+      }
+      const vote = `${tally.yes} Yes / ${tally.no} No / ${tally.noWithVeto} Veto`
+      return {
+        proposalId: '#' + proposalId,
+        date: submitTime,
+        result,
+        description: content.description,
+        vote,
+        type: 'Technical',
+      }
+    })
+  }
+
   const handleNewProposal = () => {}
 
   return (
@@ -61,6 +104,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
             closeDate={proposal.DepositEndTime}
             tally={proposal.tally}
             totalDeposit={proposal.totalDeposit[0]}
+            status={proposal.status}
           />
         ))}
 
@@ -68,18 +112,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
         <SectionTitle>Past Governance Proposals</SectionTitle>
       </SectionTitleContainer>
       {governance && governance.proposals && (
-        <GovernanceTable
-          data={governance.proposals.map(
-            (proposal: ProposalsType, i: number) => ({
-              proposalId: '#' + proposal.proposalId,
-              date: proposal.submitTime,
-              result: '',
-              description: proposal.content.description,
-              vote: `${proposal.tally.yes} Yes / ${proposal.tally.no} No / ${proposal.tally.noWithVeto} Veto`,
-              type: 'Technical',
-            }),
-          )}
-        />
+        <GovernanceTable data={mapToGovernanceTable(governance.proposals)} />
       )}
     </Container>
   )
