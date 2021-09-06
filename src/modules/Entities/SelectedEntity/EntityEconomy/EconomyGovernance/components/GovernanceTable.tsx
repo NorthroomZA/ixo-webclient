@@ -22,7 +22,7 @@ const columns = [
   },
   {
     Header: 'PROPOSAL',
-    accessor: 'proposal',
+    accessor: 'proposalId',
   },
   {
     Header: 'VALUE',
@@ -57,10 +57,25 @@ const tableData = [
   },
 ]
 
-const GovernanceTable: FunctionComponent = () => {
+export interface GovernanceTableRow {
+  proposalId: string,
+  date: string,
+  result: string,
+  description: string,
+  vote: string,
+  type: string
+}
+
+interface GovernanceTableProps {
+  data: GovernanceTableRow[]
+}
+
+const GovernanceTable: FunctionComponent<GovernanceTableProps> = ({
+  data
+}) => {
   return (
     <div>
-      <Table columns={columns} data={tableData} />
+      <Table columns={columns} data={data} />
     </div>
   )
 }

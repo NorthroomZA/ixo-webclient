@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
-import GovernanceTable from './components/GovernanceTable'
+import GovernanceTable, {
+  GovernanceTableRow,
+} from './components/GovernanceTable'
 import {
   Container,
   SectionTitleContainer,
@@ -37,9 +39,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
     // eslint-disable-next-line
   }, [governance])
 
-  const handleNewProposal = () => {
-    
-  }
+  const handleNewProposal = () => {}
 
   return (
     <Container>
@@ -67,7 +67,20 @@ const EconomyGovernance: React.FunctionComponent = () => {
       <SectionTitleContainer>
         <SectionTitle>Past Governance Proposals</SectionTitle>
       </SectionTitleContainer>
-      <GovernanceTable />
+      {governance && governance.proposals && (
+        <GovernanceTable
+          data={governance.proposals.map(
+            (proposal: ProposalsType, i: number) => ({
+              proposalId: '#' + proposal.proposalId,
+              date: proposal.submitTime,
+              result: '',
+              description: proposal.content.description,
+              vote: `${proposal.tally.yes} Yes / ${proposal.tally.no} No / ${proposal.tally.noWithVeto} Veto`,
+              type: 'Technical',
+            }),
+          )}
+        />
+      )}
     </Container>
   )
 }

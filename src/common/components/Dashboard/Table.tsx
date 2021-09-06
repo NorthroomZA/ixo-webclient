@@ -188,6 +188,8 @@ const renderCell = (cell: any): any => {
     ) : (
       <span style={{ color: '#E2223B' }}>Send</span>
     )
+  } else if (cell.column.id === 'description') {
+    return <>{cell.value.substring(0, 50)}...</>
   } else if (cell.column.id === 'value') {
     return <Value value={cell.value} />
   } else if (cell.column.id === 'vote') {
