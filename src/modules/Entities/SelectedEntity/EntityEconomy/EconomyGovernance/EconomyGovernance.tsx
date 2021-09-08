@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
+import Long from 'long'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
 import keysafe from 'common/keysafe/keysafe'
@@ -21,6 +22,7 @@ import { getProposals, getProposers } from '../EntityEconomy.actions'
 import { ProposalStatus, ProposalsType } from '../types'
 import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
 import { TextProposal } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
+import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
 import { Any } from 'cosmjs-types/google/protobuf/any'
 import { getUIXOAmount } from 'common/utils/currency.utils'
 import * as base58 from 'bs58'
@@ -262,6 +264,56 @@ const EconomyGovernance: React.FunctionComponent = () => {
     }
   }
 
+  const handleVote = async (proposalId: string, answer: number) => {
+    try {
+      const [accounts, offlineSigner] = await keplr.connectAccount()
+      const address = accounts[0].address
+      const client = await keplr.initStargateClient(offlineSigner)
+
+      const payload = {
+        msgAny: {
+          typeUrl: '/cosmos.gov.v1beta1.MsgVote',
+          value: MsgVote.fromPartial({
+            proposalId: Long.fromString(proposalId),
+            voter: address,
+            option: answer,
+          }),
+        },
+        chain_id: process.env.REACT_APP_CHAIN_ID,
+        fee: {
+          amount: [{ amount: String(5000), denom: 'uixo' }],
+          gas: String(200000),
+        },
+        memo: '',
+      }
+
+      try {
+        const result = await keplr.sendTransaction(client, address, payload)
+        if (result) {
+          Toast.successToast(`Transaction Successful`)
+        } else {
+          Toast.errorToast(`Transaction Failed`)
+        }
+      } catch (e) {
+        Toast.errorToast(`Transaction Failed`)
+        throw e
+      }
+    } catch (e) {
+      console.log(userAddress)
+      if (!userAddress) return
+      const msg = {
+        type: 'cosmos-sdk/MsgVote',
+        value: {
+          option: Number(answer),
+          proposal_id: proposalId,
+          voter: userAddress,
+        },
+      }
+
+      broadCastMessage(msg)
+    }
+  }
+
   return (
     <Container>
       <SectionTitleContainer>
@@ -283,6 +335,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
             tally={proposal.tally}
             totalDeposit={proposal.totalDeposit[0]}
             status={proposal.status}
+            handleVote={handleVote}
           />
         ))}
 

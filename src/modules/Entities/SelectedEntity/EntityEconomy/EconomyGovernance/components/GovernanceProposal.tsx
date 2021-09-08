@@ -25,6 +25,8 @@ import { useSelector } from 'react-redux'
 import { getBalanceNumber } from 'common/utils/currency.utils'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { thousandSeparator } from 'common/utils/formatters'
+import { ModalWrapper } from 'common/components/Wrappers/ModalWrapper'
+import VoteModal from 'common/components/ControlPanel/Actions/VoteModal'
 
 const Container = styled.div`
   background: linear-gradient(180deg, #ffffff 0%, #f2f5fb 100%);
@@ -111,6 +113,7 @@ interface GovernanceProposalProps {
   tally: TallyType
   totalDeposit: Coin
   status: ProposalStatus
+  handleVote: (proposalId: string, answer: number) => void
 }
 
 const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
@@ -123,6 +126,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   tally,
   status,
   totalDeposit,
+  handleVote,
 }) => {
   const { address } = useSelector((state: RootState) => state.account)
   const [myVoteStatus, setMyVoteStatus] = useState<VoteStatus>(
@@ -130,6 +134,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
   )
   const [votingPeriod, setVotingPeriod] = useState<number>(0)
   const [votingRemain, setVotingRemain] = useState<number>(0)
+  const [voteModalOpen, setVoteModalOpen] = useState<boolean>(false)
 
   const getMyVoteStatus = () => {
     return Axios.get(
@@ -169,15 +174,11 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
       .catch(e => console.log(e))
 
     setVotingPeriod(
-      moment.utc(closeDate).diff(moment.utc(submissionDate), 'minutes'),
+      moment.utc(closeDate).diff(moment.utc(submissionDate), 'minutes')
     )
     setVotingRemain(moment.utc(closeDate).diff(moment().utc(), 'minutes'))
     // eslint-disable-next-line
   }, [])
-
-  const handleVote = () => {
-    console.log('handleVote')
-  }
 
   return (
     <Container className='container-fluid'>
@@ -262,7 +263,7 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
                   ? ''
                   : 'disable'
               }
-              onClick={handleVote}
+              onClick={() => setVoteModalOpen(true)}
             >
               {status === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD &&
               myVoteStatus === VoteStatus.VOTE_OPTION_UNSPECIFIED
@@ -372,6 +373,12 @@ const GovernanceProposal: React.FunctionComponent<GovernanceProposalProps> = ({
           </WidgetWrapper>
         </div>
       </div>
+      <ModalWrapper
+        isModalOpen={voteModalOpen}
+        handleToggleModal={(): void => setVoteModalOpen(false)}
+      >
+        <VoteModal specificProposalId={proposalId} handleVote={handleVote} />
+      </ModalWrapper>
     </Container>
   )
 }
