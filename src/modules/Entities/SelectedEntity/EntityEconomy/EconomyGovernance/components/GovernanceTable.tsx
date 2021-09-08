@@ -30,32 +30,32 @@ const columns = [
   },
 ]
 
-const tableData = [
-  {
-    date: new Date(2020, 6, 6),
-    type: 'Technical',
-    result: 'Passed (67%)',
-    description: 'Add IRIS metrics to performance reporting',
-    proposal: '#3',
-    vote: '453 Yes /  800 No / 12 Veto'
-  },
-  {
-    date: new Date(2020, 6, 6),
-    type: 'Technical',
-    result: 'Passed (67%)',
-    description: 'Add IRIS metrics to performance reporting',
-    proposal: '#3',
-    vote: '453 Yes /  800 No / 12 Veto'
-  },
-  {
-    date: new Date(2020, 6, 6),
-    type: 'Technical',
-    result: 'Passed (67%)',
-    description: 'Add IRIS metrics to performance reporting',
-    proposal: '#3',
-    vote: '453 Yes /  800 No / 12 Veto'
-  },
-]
+// const tableData = [
+//   {
+//     date: new Date(2020, 6, 6),
+//     type: 'Technical',
+//     result: 'Passed (67%)',
+//     description: 'Add IRIS metrics to performance reporting',
+//     proposal: '#3',
+//     vote: '453 Yes /  800 No / 12 Veto'
+//   },
+//   {
+//     date: new Date(2020, 6, 6),
+//     type: 'Technical',
+//     result: 'Passed (67%)',
+//     description: 'Add IRIS metrics to performance reporting',
+//     proposal: '#3',
+//     vote: '453 Yes /  800 No / 12 Veto'
+//   },
+//   {
+//     date: new Date(2020, 6, 6),
+//     type: 'Technical',
+//     result: 'Passed (67%)',
+//     description: 'Add IRIS metrics to performance reporting',
+//     proposal: '#3',
+//     vote: '453 Yes /  800 No / 12 Veto'
+//   },
+// ]
 
 export interface GovernanceTableRow {
   proposalId: string,

@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
+import keysafe from 'common/keysafe/keysafe'
 import * as keplr from 'common/utils/keplr'
 import * as Toast from 'common/utils/Toast'
+import Axios from 'axios'
 import GovernanceTable, {
   GovernanceTableRow,
 } from './components/GovernanceTable'
@@ -19,10 +21,20 @@ import { getProposals, getProposers } from '../EntityEconomy.actions'
 import { ProposalStatus, ProposalsType } from '../types'
 import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
 import { TextProposal } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
+import { Any } from 'cosmjs-types/google/protobuf/any'
+import { getUIXOAmount } from 'common/utils/currency.utils'
+import * as base58 from 'bs58'
+import { sortObject } from 'common/utils/transformationUtils'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { governance } = useSelector((state: RootState) => state.economy)
+  const { 
+    address: userAddress,
+    accountNumber: userAccountNumber,
+    sequence: userSequence,
+    userInfo
+  } = useSelector((state: RootState) => state.account)
 
   useEffect(() => {
     dispatch(getProposals())
@@ -99,7 +111,84 @@ const EconomyGovernance: React.FunctionComponent = () => {
     )
   }
 
+  const broadCastMessage = useCallback(
+    msg => {
+      const payload = {
+        msgs: [msg],
+        chain_id: process.env.REACT_APP_CHAIN_ID,
+        fee: {
+          amount: [{ amount: String(5000), denom: 'uixo' }],
+          gas: String(200000),
+        },
+        memo: '',
+        account_number: String(userAccountNumber),
+        sequence: String(userSequence),
+      }
+
+      const pubKey = base58.decode(userInfo.didDoc.pubKey).toString('base64')
+
+      keysafe.requestSigning(
+        JSON.stringify(sortObject(payload)),
+        (error: any, signature: any) => {
+          Axios.post(`${process.env.REACT_APP_GAIA_URL}/txs`, {
+            tx: {
+              msg: payload.msgs,
+              fee: payload.fee,
+              signatures: [
+                {
+                  account_number: payload.account_number,
+                  sequence: payload.sequence,
+                  signature: signature.signatureValue,
+                  pub_key: {
+                    type: 'tendermint/PubKeyEd25519',
+                    value: pubKey,
+                  },
+                },
+              ],
+              memo: '',
+            },
+            mode: 'sync',
+          }).then(response => {
+            if (response.data.txhash) {
+              Toast.successToast(`Transaction Successful`)
+              if (response.data.code === 4) {
+                Toast.errorToast(`Transaction Failed`)
+                return
+              }
+
+              return
+            }
+
+            Toast.errorToast(`Transaction Failed`)
+          })
+        },
+        'base64',
+      )
+    },
+    [userInfo, userSequence, userAccountNumber],
+  )
+
   const handleNewProposal = async () => {
+    // const type = 'TextProposal' // 'ParameterChangeProposal'
+    const title = 'Set base network inflation at 20%'
+    const description = 'The Impact Hub is a bonded Proof of Stake (bPoS) network with bonding denominated in IXO tokens. A higher bonded ratio of IXO tokens, relative to total supply, increases the network security. Inflation in the token supply provides the incentive for del'
+    const changes = [
+      {
+        subspace: "mint",
+        key: "InflationMax",
+        value: '"0.200000000000000000"'
+      },
+      { 
+        subspace: "mint",
+        key: "InflationMin",
+        value: '"0.070000000000000000"'
+      },
+      { 
+        subspace: "mint",
+        key: "InflationRateChange",
+        value: '"0.130000000000000000"'
+      }
+    ]
     try {
       const [accounts, offlineSigner] = await keplr.connectAccount()
       const address = accounts[0].address
@@ -109,23 +198,15 @@ const EconomyGovernance: React.FunctionComponent = () => {
         msgAny: {
           typeUrl: '/cosmos.gov.v1beta1.MsgSubmitProposal',
           value: MsgSubmitProposal.fromPartial({
-            content: {
-              typeUrl: '/cosmos.gov.v1beta1.TextProposal',
-              value: new Uint8Array(
-                Buffer.from(
-                  JSON.stringify({
-                    title: 'Set base network inflation at 20%',
-                    description:
-                      'The Impact Hub is a bonded Proof of Stake (bPoS) network with bonding denominated in IXO tokens. A higher bonded ratio of IXO tokens, relative to total supply, increases the network security. Inflation in the token supply provides the incentive for del',
-                  }),
-                ),
-              ),
-
-              // value: new Uint8Array(TextProposal.fromPartial({
-              //   title: 'Set base network inflation at 20%',
-              //   description: 'The Impact Hub is a bonded Proof of Stake (bPoS) network with bonding denominated in IXO tokens. A higher bonded ratio of IXO tokens, relative to total supply, increases the network security. Inflation in the token supply provides the incentive for del',
-              // }))
-            },
+            content: Any.fromPartial({
+              typeUrl: "/cosmos.gov.v1beta1.TextProposal",
+              value: TextProposal.encode(
+                TextProposal.fromPartial({
+                  title: title,
+                  description: description,
+                }),
+              ).finish(),
+            }),
             initialDeposit: [
               {
                 amount: '1000000',
@@ -155,19 +236,29 @@ const EconomyGovernance: React.FunctionComponent = () => {
         throw e
       }
     } catch (e) {
-      // if (!userDid) return
-      // const msg = {
-      //   type: 'cosmos-sdk/MsgDelegate',
-      //   value: {
-      //     amount: {
-      //       amount: getUIXOAmount(String(amount)),
-      //       denom: 'uixo',
-      //     },
-      //     delegator_address: userAddress,
-      //     validator_address: validatorAddress,
-      //   },
-      // }
-      // broadCastMessage(msg)
+      if (!userAddress) return;
+      const msg = {
+        type: 'cosmos-sdk/MsgSubmitProposal',
+        value: {
+          content: {
+            type: 'cosmos-sdk/ParameterChangeProposal',
+            value: {
+              title,
+              description,
+              changes
+            },
+          },
+          initial_deposit: [
+            {
+              amount: getUIXOAmount(String(1)),
+              denom: 'uixo',
+            },
+          ],
+          proposer: userAddress,
+        },
+      }
+  
+      broadCastMessage(msg)
     }
   }
 
