@@ -98,14 +98,9 @@ const DecisionIMG = styled.img`
   height: 30px;
 `
 
-export enum ProposalType {
-  Membership = 'Membership',
-  Budget = 'Budget',
-}
-
 interface GovernanceProposalProps {
   proposalId: number
-  type: ProposalType
+  type: string
   announce: string
   proposedBy: string
   submissionDate: string

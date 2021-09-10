@@ -13,9 +13,7 @@ import {
   SectionTitle,
   ActionButton,
 } from '../EntityEconomy.styles'
-import GovernanceProposal, {
-  ProposalType,
-} from './components/GovernanceProposal'
+import GovernanceProposal from './components/GovernanceProposal'
 import { getProposals, getProposers } from '../EntityEconomy.actions'
 import { ProposalStatus, ProposalsType } from '../types'
 import { MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
@@ -272,7 +270,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
           <GovernanceProposal
             key={i}
             proposalId={proposal.proposalId}
-            type={ProposalType.Membership}
+            type={proposal.content['@type'].split('.').pop()}
             announce={proposal.content.title}
             proposedBy={proposal.proposer}
             submissionDate={proposal.submitTime}
