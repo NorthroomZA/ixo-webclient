@@ -91,8 +91,10 @@ const EconomyGovernance: React.FunctionComponent = () => {
             result += `No Quorum`
             break
           case ProposalStatus.PROPOSAL_STATUS_DEPOSIT_PERIOD:
+            result += 'Deposit Period'
             break
           case ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD:
+            result += 'Voting Period'
             break
           default:
             break
@@ -104,7 +106,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
           result,
           description: content.description,
           vote,
-          type: 'Technical',
+          type: content['@type'].split('.').pop(),
         }
       },
     )

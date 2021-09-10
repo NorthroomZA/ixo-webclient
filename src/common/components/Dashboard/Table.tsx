@@ -42,7 +42,7 @@ const renderCell = (cell: any): any => {
         <span style={{ color: '#E2223B' }}>Send</span>
       )
     case 'description':
-      return <>{cell.value.substring(0, 50)}...</>
+      return <div title={cell.value}>{cell.value.substring(0, 50)}{cell.value.length > 50 ? '...' : ''}</div>
     case 'value':
       return <Value value={cell.value} />
     case 'vote':
