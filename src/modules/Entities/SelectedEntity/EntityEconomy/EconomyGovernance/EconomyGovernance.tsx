@@ -1,11 +1,9 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import Long from 'long'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
-import keysafe from 'common/keysafe/keysafe'
 import * as keplr from 'common/utils/keplr'
 import * as Toast from 'common/utils/Toast'
-import Axios from 'axios'
 import GovernanceTable, {
   GovernanceTableRow,
 } from './components/GovernanceTable'
@@ -25,8 +23,7 @@ import { TextProposal } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
 import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
 import { Any } from 'cosmjs-types/google/protobuf/any'
 import { getUIXOAmount } from 'common/utils/currency.utils'
-import * as base58 from 'bs58'
-import { sortObject } from 'common/utils/transformationUtils'
+import { broadCastMessage } from 'common/utils/keysafe'
 
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
@@ -112,63 +109,6 @@ const EconomyGovernance: React.FunctionComponent = () => {
       },
     )
   }
-
-  const broadCastMessage = useCallback(
-    msg => {
-      const payload = {
-        msgs: [msg],
-        chain_id: process.env.REACT_APP_CHAIN_ID,
-        fee: {
-          amount: [{ amount: String(5000), denom: 'uixo' }],
-          gas: String(200000),
-        },
-        memo: '',
-        account_number: String(userAccountNumber),
-        sequence: String(userSequence),
-      }
-
-      const pubKey = base58.decode(userInfo.didDoc.pubKey).toString('base64')
-
-      keysafe.requestSigning(
-        JSON.stringify(sortObject(payload)),
-        (error: any, signature: any) => {
-          Axios.post(`${process.env.REACT_APP_GAIA_URL}/txs`, {
-            tx: {
-              msg: payload.msgs,
-              fee: payload.fee,
-              signatures: [
-                {
-                  account_number: payload.account_number,
-                  sequence: payload.sequence,
-                  signature: signature.signatureValue,
-                  pub_key: {
-                    type: 'tendermint/PubKeyEd25519',
-                    value: pubKey,
-                  },
-                },
-              ],
-              memo: '',
-            },
-            mode: 'sync',
-          }).then(response => {
-            if (response.data.txhash) {
-              Toast.successToast(`Transaction Successful`)
-              if (response.data.code === 4) {
-                Toast.errorToast(`Transaction Failed`)
-                return
-              }
-
-              return
-            }
-
-            Toast.errorToast(`Transaction Failed`)
-          })
-        },
-        'base64',
-      )
-    },
-    [userInfo, userSequence, userAccountNumber],
-  )
 
   const handleNewProposal = async () => {
     // const type = 'TextProposal' // 'ParameterChangeProposal'
@@ -260,7 +200,9 @@ const EconomyGovernance: React.FunctionComponent = () => {
         },
       }
   
-      broadCastMessage(msg)
+      broadCastMessage(userInfo, userSequence, userAccountNumber, msg, () => {
+        
+      })
     }
   }
 
@@ -299,7 +241,6 @@ const EconomyGovernance: React.FunctionComponent = () => {
         throw e
       }
     } catch (e) {
-      console.log(userAddress)
       if (!userAddress) return
       const msg = {
         type: 'cosmos-sdk/MsgVote',
@@ -310,7 +251,9 @@ const EconomyGovernance: React.FunctionComponent = () => {
         },
       }
 
-      broadCastMessage(msg)
+      broadCastMessage(userInfo, userSequence, userAccountNumber, msg, () => {
+        
+      })
     }
   }
 
