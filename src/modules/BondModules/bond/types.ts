@@ -13,7 +13,7 @@ export interface BondState {
   trades: {}[]
   alpha?: number
   alphaDate?: Date,
-  transactions: any,
+  transactions?: any,
 }
 
 export enum BondActions {
