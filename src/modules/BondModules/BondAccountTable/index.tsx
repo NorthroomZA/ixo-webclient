@@ -1,7 +1,8 @@
-import React, { useMemo, Fragment } from 'react'
+import React, { Fragment } from 'react'
 import { useTable } from 'react-table'
 import {useTransition} from 'react-spring'
 import moment from 'moment'
+import { TransactionInfo } from 'modules/Account/types'
 
 // import { useSpring, animated } from 'react-spring'
 import {
@@ -15,63 +16,70 @@ import {
   StyledDateWrapper,
   StyledAmountWrapper,
   StyledHeader,
+  HeaderLabel,
+  HeaderAction,
+  DownloadAction,
+  DownloadLabel,
+  DownloadImage,
+  CreateAction,
 } from './BondTable.style'
 import { InComponent, OutComponent } from './ValueComponent'
 import { useWindowSize } from 'common/hooks'
 
-const tableData = [
-  {
-    date: Date.now(),
-    transaction: 'Buy',
-    quantity: 28,
-    price: 12,
-    in: '0.5000BTC',
-    out: 86,
-  },
-  {
-    date: Date.now(),
-    transaction: 'Send',
-    quantity: 28,
-    price: 12,
-    in: '0.5000BTC',
-    out: 86,
-  },
-  {
-    date: Date.now(),
-    transaction: 'Receive',
-    quantity: 28,
-    price: 12,
-    in: '0.5000BTC',
-    out: 86,
-  },
-  {
-    date: Date.now(),
-    transaction: 'Swap',
-    quantity: 28,
-    price: 12,
-    in: '0.5000BTC',
-    out: 86,
-  },
-  {
-    date: Date.now(),
-    transaction: 'Sell',
-    quantity: 28,
-    price: 12,
-    in: '0.5000BTC',
-    out: 86,
-  },
-]
+import IMG_DOWNLOAD from 'assets/images/exchange/download.svg'
 
+// const tableData = [
+//   {
+//     date: Date.now(),
+//     type: 'Buy',
+//     quantity: 28,
+//     price: 12,
+//     in: '0.5000BTC',
+//     out: 86,
+//   },
+//   {
+//     date: Date.now(),
+//     type: 'Send',
+//     quantity: 28,
+//     price: 12,
+//     in: '0.5000BTC',
+//     out: 86,
+//   },
+//   {
+//     date: Date.now(),
+//     type: 'Receive',
+//     quantity: 28,
+//     price: 12,
+//     in: '0.5000BTC',
+//     out: 86,
+//   },
+//   {
+//     date: Date.now(),
+//     type: 'Swap',
+//     quantity: 28,
+//     price: 12,
+//     in: '0.5000BTC',
+//     out: 86,
+//   },
+//   {
+//     date: Date.now(),
+//     type: 'Sell',
+//     quantity: 28,
+//     price: 12,
+//     in: '0.5000BTC',
+//     out: 86,
+//   },
+// ]
+
+interface BondTableProps {
+  handleDownloadCSV?: () => void,
+  handleNewTransaction?: () => void,
+  tableData?: TransactionInfo[]
+  token?: string
+}
 interface TableProps {
   columns: object
-  data: {
-    date: number
-    transaction: string
-    quantity: number
-    price: number
-    in: string,
-    out: number
-  }[]
+  data: TransactionInfo[]
 }
 
 const renderCell = (cell: any): any => {
@@ -79,13 +87,13 @@ const renderCell = (cell: any): any => {
     return (
       <DateContainer>
         <span>{moment(cell.value).format('DD MMM YY')}</span>
-        <span>{moment(cell.value).format('HH:SS')}</span>
+        <span>{moment(cell.value).format('HH:ss')}</span>
       </DateContainer>
     )
   } else if (cell.column.id === 'in') {
-    return <InComponent value={cell.value} />
+    return <InComponent value={cell.row.values.quantity} />
   }  else if (cell.column.id === 'out') {
-    return <OutComponent value={cell.value} />
+    return <OutComponent value={cell.row.values.quantity} />
   } else {
     return cell.render('Cell')
   }
@@ -196,9 +204,13 @@ const Table: React.SFC<TableProps> = ({ columns, data }) => {
   )
 }
 
-export const BondTable: React.SFC<{}> = () => {
-  const columns = useMemo(
-    () => [
+export const BondTable: React.FC<BondTableProps> = ({
+  handleDownloadCSV,
+  handleNewTransaction,
+  tableData,
+  token,
+}) => {
+  const columns = [
       {
         Header: 'Date',
         accessor: 'date',
@@ -206,7 +218,7 @@ export const BondTable: React.SFC<{}> = () => {
       },
       {
         Header: 'TRANSACTION',
-        accessor: 'transaction',
+        accessor: 'type',
       },
       {
         Header: 'Quantity',
@@ -224,15 +236,22 @@ export const BondTable: React.SFC<{}> = () => {
         Header: 'OUT',
         accessor: 'out',
       },
-    ],
-    [],
-  )
+    ];
 
   return (
     <Fragment>
-      <StyledHeader>EDU Transactions</StyledHeader>
+      <StyledHeader>
+        <HeaderLabel>Reserve Account Transactions (xEUR)</HeaderLabel>
+        <HeaderAction>
+          <DownloadAction onClick={handleDownloadCSV}>
+            <DownloadLabel>Download CSV</DownloadLabel>
+            <DownloadImage src={IMG_DOWNLOAD} alt="Download CSV" />
+          </DownloadAction>
+          <CreateAction onClick={handleNewTransaction}>New Transaction</CreateAction>
+        </HeaderAction>
+      </StyledHeader>
       <TableContainer>
-        <Table columns={columns} data={tableData} />
+        {tableData && tableData.length > 0 && <Table columns={columns} data={tableData} />}
       </TableContainer>
     </Fragment>
   )
