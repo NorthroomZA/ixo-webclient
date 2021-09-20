@@ -101,6 +101,7 @@ const Actions: React.FunctionComponent<Props> = ({
   const [depositModalOpen, setDepositModalOpen] = useState(false)
   const [voteModalOpen, setVoteModalOpen] = useState(false)
   const [sendModalOpen, setSendModalOpen] = useState(false)
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   const [editValidatorModalOpen, setEditValidatorModalOpen] = useState(false)
   const [canEditValidator, setCanEditValidator] = useState(false)
   const [fuelEntityModalOpen, setFuelEntityModalOpen] = useState(false)
@@ -594,6 +595,9 @@ const Actions: React.FunctionComponent<Props> = ({
         case 'fuel_my_entity':
           setFuelEntityModalOpen(true)
           return
+        case 'payment':
+          setPaymentModalOpen(true)
+          return
       }
       if (window.location.pathname.startsWith(to)) {
         e.preventDefault()
@@ -742,6 +746,12 @@ const Actions: React.FunctionComponent<Props> = ({
       <ModalWrapper
         isModalOpen={sendModalOpen}
         handleToggleModal={(): void => setSendModalOpen(false)}
+      >
+        <SendModal handleSend={handleSend} />
+      </ModalWrapper>
+      <ModalWrapper
+        isModalOpen={paymentModalOpen}
+        handleToggleModal={(): void => setPaymentModalOpen(false)}
       >
         <SendModal handleSend={handleSend} />
       </ModalWrapper>
