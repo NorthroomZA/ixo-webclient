@@ -4,8 +4,11 @@ import { assertIsBroadcastTxSuccess, SigningStargateClient } from "@cosmjs/starg
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Registry } from "@cosmjs/proto-signing";
 import { MsgDelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import { MsgVote, MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
+import { MsgVote, MsgSubmitProposal } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
 import { TextProposal } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
+import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
+import { MsgDeposit } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
+import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx'
 
 declare const window: any
 
@@ -133,9 +136,14 @@ export const checkExtensionAndBrowser = () => {
 export const initStargateClient = async (offlineSigner) => {
   // Initialize the cosmic casino api with the offline signer that is injected by Keplr extension.
   const registry = new Registry();
-  
+
   registry.register("/cosmos.staking.v1beta1.MsgDelegate", MsgDelegate);
   registry.register("/cosmos.gov.v1beta1.MsgVote", MsgVote);
+  registry.register("/cosmos.staking.v1beta1.MsgDelegate", MsgDelegate);
+  registry.register("/cosmos.gov.v1beta1.MsgVote", MsgVote);
+  registry.register("/cosmos.bank.v1beta1.MsgSend", MsgSend);
+  registry.register("/cosmos.gov.v1beta1.MsgDeposit", MsgDeposit);
+  registry.register("/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward", MsgWithdrawDelegatorReward);
   registry.register("/cosmos.gov.v1beta1.MsgSubmitProposal", MsgSubmitProposal);
   registry.register("/cosmos.gov.v1beta1.TextProposal", TextProposal);
 
@@ -165,7 +173,7 @@ export const connectAccount = async () => {
   // Setup signer
   const offlineSigner = window.getOfflineSigner(chainConfig.id);
   const accounts = await offlineSigner.getAccounts(); // only one account currently supported by keplr
-  
+
   return [accounts, offlineSigner];
 };
 
@@ -185,11 +193,11 @@ export const getKeplr = async() => {
   if (window.keplr) {
       return window.keplr;
   }
-  
+
   if (document.readyState === "complete") {
       return window.keplr;
   }
-  
+
   return new Promise((resolve) => {
     const documentStateChange = (event: Event) => {
       if (
@@ -200,7 +208,7 @@ export const getKeplr = async() => {
           document.removeEventListener("readystatechange", documentStateChange);
       }
     };
-    
+
     document.addEventListener("readystatechange", documentStateChange);
   });
 }
