@@ -54,6 +54,7 @@ import { Currency } from 'types/models'
 import WalletSelectModal from './WalletSelectModal'
 import RedelegateModal from './RedelegateModal'
 import ModifyWithdrawAddressModal from './ModifyWithdrawAddressModal'
+import MakePaymentModal from './MakePaymentModal'
 
 declare const window: any
 interface IconTypes {
@@ -675,6 +676,9 @@ const Actions: React.FunctionComponent<Props> = ({
       case 'delegate':
         setDelegateModalOpen(true)
         break
+      case 'payment':
+        setPaymentModalOpen(true)
+        break
       default:
         break
     }
@@ -756,7 +760,8 @@ const Actions: React.FunctionComponent<Props> = ({
           setFuelEntityModalOpen(true)
           return
         case 'payment':
-          setPaymentModalOpen(true)
+          // setPaymentModalOpen(true)
+          setWalletModalOpen(true)
           return
         case 'multi_send':
           setMultiSendModalOpen(true)
@@ -941,9 +946,14 @@ const Actions: React.FunctionComponent<Props> = ({
       </ModalWrapper>
       <ModalWrapper
         isModalOpen={paymentModalOpen}
+        header={{
+          title: 'Make a Payment',
+          titleNoCaps: true,
+          noDivider: true,
+        }}
         handleToggleModal={(): void => setPaymentModalOpen(false)}
       >
-        <SendModal walletType={walletType} accountAddress={selectedAddress} />
+        <MakePaymentModal walletType={walletType} accountAddress={selectedAddress} />
       </ModalWrapper>
       <ModalWrapper
         isModalOpen={editValidatorModalOpen}

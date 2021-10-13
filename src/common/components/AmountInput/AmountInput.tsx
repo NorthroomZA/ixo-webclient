@@ -16,6 +16,7 @@ interface Props {
   memo: string
   memoStatus: string
   disable?: boolean
+  error?: boolean
   suffix: string
   handleAmountChange: (event: any) => void
   handleMemoChange: (event: any) => void
@@ -27,6 +28,7 @@ const AmountInput: React.FunctionComponent<Props> = ({
   memo,
   memoStatus,
   disable = false,
+  error = false,
   suffix,
   handleAmountChange,
   handleMemoChange,
@@ -52,7 +54,7 @@ const AmountInput: React.FunctionComponent<Props> = ({
   }
 
   return (
-    <AmountInputWrapper className={cx({ disable: disable })}>
+    <AmountInputWrapper className={cx({ disable: disable, error: error })}>
       {!disable && amount > 0 && (
         <IconWrapper onClick={handleAction}>
           <img

@@ -2,12 +2,20 @@ import styled from 'styled-components'
 
 export const AmountInputWrapper = styled.div`
   position: relative;
-  background: #03324A;
-  border: 1px solid #49BFE0;
+  background: #03324a;
+  border: 1px solid #49bfe0;
   border-radius: 4px;
 
   &.disable {
     border: 1px solid transparent;
+  }
+
+  &.error {
+    border: 1px solid #cd1c33;
+
+    & input {
+      background: #ffffff88;
+    }
   }
 `
 
@@ -32,7 +40,7 @@ export const InputWrapper = styled.div`
     font-weight: 700;
     font-size: 18px;
     line-height: 22px;
-    color: #FFFFFF;
+    color: #ffffff;
     padding: 15px;
 
     background: none;
@@ -49,7 +57,7 @@ export const InputWrapper = styled.div`
       margin: 0;
     }
     &::placeholder {
-      color: #537B8E;
+      color: #537b8e;
     }
   }
 `
@@ -60,10 +68,10 @@ export const MemoInputWrapper = styled.div`
     font-weight: 400;
     font-size: 18px;
     line-height: 22px;
-    color: #FFFFFF;
+    color: #ffffff;
     padding: 15px;
 
-    background: #FFFFFF88;
+    background: #ffffff88;
     border: none;
     height: 50px;
     border-radius: unset;
@@ -72,7 +80,7 @@ export const MemoInputWrapper = styled.div`
       outline: none;
     }
     &::placeholder {
-      color: #537B8E;
+      color: #537b8e;
     }
   }
 `
