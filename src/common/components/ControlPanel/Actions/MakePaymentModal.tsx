@@ -12,6 +12,7 @@ import AmountInput from 'common/components/AmountInput/AmountInput'
 import OverlayButtonIcon from 'assets/images/modal/overlaybutton-down.svg'
 import NextStepIcon from 'assets/images/modal/nextstep.svg'
 import EyeIcon from 'assets/images/eye-icon.svg'
+import CheckIcon from 'assets/images/modal/check.svg'
 
 // import { useSelector } from 'react-redux'
 // import { RootState } from 'common/redux/types'
@@ -26,6 +27,7 @@ import errorAnimation from 'assets/animations/transaction/fail.json'
 import ContractSelector, {
   ContractInfo,
 } from 'common/components/ContractSelector/ContractSelector'
+import { thousandSeparator } from 'common/utils/formatters'
 
 const Container = styled.div`
   position: relative;
@@ -39,6 +41,13 @@ const NextStep = styled.div`
   right: 10px;
   bottom: 30px;
   cursor: pointer;
+`
+const PrevStep = styled.div`
+  position: absolute;
+  left: 10px;
+  bottom: 30px;
+  cursor: pointer;
+  transform: rotateY(180deg);
 `
 
 const OverlayWrapper = styled.div`
@@ -97,6 +106,15 @@ const TXStatusBoard = styled.div`
     cursor: pointer;
   }
 `
+const CheckWrapper = styled.div`
+  position: relative;
+  & > .check-icon {
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+`
 
 enum TXStatus {
   PENDING = 'pending',
@@ -151,6 +169,9 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
     }
   }
 
+  const handlePrevStep = (): void => {
+    setCurrentStep(currentStep - 1)
+  }
   const handleNextStep = async (): Promise<void> => {
     setCurrentStep(currentStep + 1)
     if (currentStep === 2) {
@@ -270,6 +291,15 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
         return false
     }
   }
+  const enablePrevStep = (): boolean => {
+    switch (currentStep) {
+      case 1:
+      case 2:
+        return true
+      default:
+        return false
+    }
+  }
 
   const chooseAnimation = (txStatus): any => {
     switch (txStatus) {
@@ -312,7 +342,17 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
   useEffect(() => {
     if (currentStep === 0) {
       getBalances(accountAddress).then(({ balances }) => {
-        setBalances(balances)
+        setBalances(
+          balances.map((balance) => {
+            if (balance.denom === 'uixo') {
+              return {
+                denom: 'ixo',
+                amount: getBalanceNumber(new BigNumber(balance.amount)),
+              }
+            }
+            return balance
+          }),
+        )
       })
       setContracts([
         {
@@ -347,27 +387,33 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
 
       {currentStep < 3 && (
         <>
-          <TokenSelector
-            selectedToken={asset}
-            tokens={balances.map((balance) => {
-              if (balance.denom === 'uixo') {
-                return {
-                  denom: 'ixo',
-                  amount: getBalanceNumber(new BigNumber(balance.amount)),
-                }
+          <CheckWrapper>
+            <TokenSelector
+              selectedToken={asset}
+              tokens={balances}
+              handleChange={handleTokenChange}
+              disable={currentStep !== 0}
+              label={
+                asset &&
+                `${thousandSeparator(asset.amount.toFixed(0), ',')} Available`
               }
-              return balance
-            })}
-            handleChange={handleTokenChange}
-            disable={currentStep !== 0}
-          />
+            />
+            {currentStep === 2 && (
+              <img className="check-icon" src={CheckIcon} alt="check-icon" />
+            )}
+          </CheckWrapper>
           <div className="mt-3" />
-          <ContractSelector
-            selectedContract={contract}
-            contracts={contracts}
-            handleChange={handleContractChange}
-            disable={currentStep !== 0}
-          />
+          <CheckWrapper>
+            <ContractSelector
+              selectedContract={contract}
+              contracts={contracts}
+              handleChange={handleContractChange}
+              disable={currentStep !== 0}
+            />
+            {currentStep === 2 && (
+              <img className="check-icon" src={CheckIcon} alt="check-icon" />
+            )}
+          </CheckWrapper>
           <OverlayWrapper>
             <img src={OverlayButtonIcon} alt="down" />
           </OverlayWrapper>
@@ -377,17 +423,22 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
       {currentStep >= 1 && currentStep <= 2 && (
         <>
           <Divider className="mt-3 mb-4" />
-          <AmountInput
-            amount={amount}
-            memo={memo}
-            memoStatus={memoStatus}
-            handleAmountChange={handleAmountChange}
-            handleMemoChange={handleMemoChange}
-            handleMemoStatus={setMemoStatus}
-            disable={currentStep !== 1}
-            error={!checkValidAmount()}
-            suffix={asset.denom.toUpperCase()}
-          />
+          <CheckWrapper>
+            <AmountInput
+              amount={amount}
+              memo={memo}
+              memoStatus={memoStatus}
+              handleAmountChange={handleAmountChange}
+              handleMemoChange={handleMemoChange}
+              handleMemoStatus={setMemoStatus}
+              disable={currentStep !== 1}
+              error={!checkValidAmount()}
+              suffix={asset.denom.toUpperCase()}
+            />
+            {currentStep === 2 && (
+              <img className="check-icon" src={CheckIcon} alt="check-icon" />
+            )}
+          </CheckWrapper>
           <NetworkFee className={cx('mt-2', { error: !checkValidAmount() })}>
             {checkValidAmount() ? (
               <>
@@ -424,6 +475,11 @@ const MakePaymentModal: React.FunctionComponent<Props> = ({
         <NextStep onClick={handleNextStep}>
           <img src={NextStepIcon} alt="next-step" />
         </NextStep>
+      )}
+      {enablePrevStep() && (
+        <PrevStep onClick={handlePrevStep}>
+          <img src={NextStepIcon} alt="prev-step" />
+        </PrevStep>
       )}
     </Container>
   )

@@ -5,6 +5,10 @@ import RecycleIcon from 'assets/images/modal/recycle.svg'
 
 const SelectorWrapper = styled.div`
   position: relative;
+  
+  & input {
+    margin: 0px !important;
+  }
 `
 
 const IconWrapper = styled.div`
@@ -72,6 +76,8 @@ const ContractSelector: React.FunctionComponent<Props> = ({
       fontSize: 20,
       alignItems: 'flex-start',
       marginRight: '-25px',
+      opacity: 0,
+      pointerEvents: 'none',
     }),
     dropdownIndicator: (): object => ({
       fontSize: 8,
@@ -106,6 +112,12 @@ const ContractSelector: React.FunctionComponent<Props> = ({
       background: '#03324A',
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
+      zIndex: 200,
+    }),
+    menuPortal: (provided): object => ({
+      ...provided,
+      zIndex: 200,
+      color: '#FFFFFF',
     }),
     option: (provided, { data, isFocused, isSelected }): object => ({
       ...provided,
@@ -117,11 +129,15 @@ const ContractSelector: React.FunctionComponent<Props> = ({
       ...provided,
       color: 'white',
       marginLeft: 35,
+      fontWeight: 700,
+      fontSize: '16px',
     }),
     placeholder: (provided): object => ({
       ...provided,
       marginLeft: 35,
       color: '#537B8E',
+      fontWeight: 700,
+      fontSize: '16px',
     }),
   }
 
@@ -141,6 +157,8 @@ const ContractSelector: React.FunctionComponent<Props> = ({
       <Select
         styles={customStyles}
         options={options}
+        menuPosition="fixed"
+        menuPortalTarget={document.body}
         components={{
           DropdownIndicator,
           ValueContainer,
