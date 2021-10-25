@@ -9,7 +9,7 @@ import TokenSelector from 'common/components/TokenSelector/TokenSelector'
 import { StepsTransactions } from 'common/components/StepsTransactions/StepsTransactions'
 import AmountInput from 'common/components/AmountInput/AmountInput'
 
-import OverlayButtonIcon from 'assets/images/modal/overlaybutton.svg'
+import OverlayButtonIcon from 'assets/images/modal/overlaybutton-down.svg'
 import NextStepIcon from 'assets/images/modal/nextstep.svg'
 import EyeIcon from 'assets/images/eye-icon.svg'
 

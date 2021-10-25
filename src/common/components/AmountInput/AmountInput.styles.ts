@@ -42,6 +42,7 @@ export const InputWrapper = styled.div`
     line-height: 22px;
     color: #ffffff;
     padding: 15px;
+    margin: 0px !important;
 
     background: none;
     border: none;
@@ -70,6 +71,7 @@ export const MemoInputWrapper = styled.div`
     line-height: 22px;
     color: #ffffff;
     padding: 15px;
+    margin: 0px !important;
 
     background: #ffffff88;
     border: none;
@@ -82,5 +84,25 @@ export const MemoInputWrapper = styled.div`
     &::placeholder {
       color: #537b8e;
     }
+  }
+`
+
+export const DisplayWrapper = styled.div`
+  font-family: Roboto;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 22px;
+  color: #FFFFFF;
+  padding: 15px;
+  margin: 0px !important;
+
+  background: none;
+  border: none;
+  height: 50px;
+  border-radius: unset;
+
+  & > span {
+    font-weight: 200;
+    font-style: italic;
   }
 `
