@@ -26,11 +26,11 @@ import { broadCastMessage } from 'common/utils/keysafe'
 const EconomyGovernance: React.FunctionComponent = () => {
   const dispatch = useDispatch()
   const { governance } = useSelector((state: RootState) => state.economy)
-  const { 
+  const {
     address: userAddress,
     accountNumber: userAccountNumber,
     sequence: userSequence,
-    userInfo
+    userInfo,
   } = useSelector((state: RootState) => state.account)
 
   useEffect(() => {
@@ -110,26 +110,27 @@ const EconomyGovernance: React.FunctionComponent = () => {
     )
   }
 
-  const handleNewProposal = async () => {
+  const handleNewProposal = async (): Promise<void> => {
     // const type = 'TextProposal' // 'ParameterChangeProposal'
     const title = 'Set base network inflation at 20%'
-    const description = 'The Impact Hub is a bonded Proof of Stake (bPoS) network with bonding denominated in IXO tokens. A higher bonded ratio of IXO tokens, relative to total supply, increases the network security. Inflation in the token supply provides the incentive for del'
+    const description =
+      'The Impact Hub is a bonded Proof of Stake (bPoS) network with bonding denominated in IXO tokens. A higher bonded ratio of IXO tokens, relative to total supply, increases the network security. Inflation in the token supply provides the incentive for del'
     const changes = [
       {
-        subspace: "mint",
-        key: "InflationMax",
-        value: '"0.200000000000000000"'
+        subspace: 'mint',
+        key: 'InflationMax',
+        value: '"0.200000000000000000"',
       },
-      { 
-        subspace: "mint",
-        key: "InflationMin",
-        value: '"0.070000000000000000"'
+      {
+        subspace: 'mint',
+        key: 'InflationMin',
+        value: '"0.070000000000000000"',
       },
-      { 
-        subspace: "mint",
-        key: "InflationRateChange",
-        value: '"0.130000000000000000"'
-      }
+      {
+        subspace: 'mint',
+        key: 'InflationRateChange',
+        value: '"0.130000000000000000"',
+      },
     ]
     try {
       const [accounts, offlineSigner] = await keplr.connectAccount()
@@ -141,7 +142,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
           typeUrl: '/cosmos.gov.v1beta1.MsgSubmitProposal',
           value: MsgSubmitProposal.fromPartial({
             content: Any.fromPartial({
-              typeUrl: "/cosmos.gov.v1beta1.TextProposal",
+              typeUrl: '/cosmos.gov.v1beta1.TextProposal',
               value: TextProposal.encode(
                 TextProposal.fromPartial({
                   title: title,
@@ -178,7 +179,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
         throw e
       }
     } catch (e) {
-      if (!userAddress) return;
+      if (!userAddress) return
       const msg = {
         type: 'cosmos-sdk/MsgSubmitProposal',
         value: {
@@ -187,7 +188,7 @@ const EconomyGovernance: React.FunctionComponent = () => {
             value: {
               title,
               description,
-              changes
+              changes,
             },
           },
           initial_deposit: [
@@ -199,14 +200,29 @@ const EconomyGovernance: React.FunctionComponent = () => {
           proposer: userAddress,
         },
       }
-  
-      broadCastMessage(userInfo, userSequence, userAccountNumber, msg, () => {
-        
-      })
+      const fee = {
+        amount: [{ amount: String(5000), denom: 'uixo' }],
+        gas: String(200000),
+      }
+
+      broadCastMessage(
+        userInfo,
+        userSequence,
+        userAccountNumber,
+        [msg],
+        '',
+        fee,
+        () => {
+          console.log('MsgSubmitProposal')
+        },
+      )
     }
   }
 
-  const handleVote = async (proposalId: string, answer: number) => {
+  const handleVote = async (
+    proposalId: string,
+    answer: number,
+  ): Promise<void> => {
     try {
       const [accounts, offlineSigner] = await keplr.connectAccount()
       const address = accounts[0].address
@@ -250,10 +266,22 @@ const EconomyGovernance: React.FunctionComponent = () => {
           voter: userAddress,
         },
       }
+      const fee = {
+        amount: [{ amount: String(5000), denom: 'uixo' }],
+        gas: String(200000),
+      }
 
-      broadCastMessage(userInfo, userSequence, userAccountNumber, msg, () => {
-        
-      })
+      broadCastMessage(
+        userInfo,
+        userSequence,
+        userAccountNumber,
+        [msg],
+        '',
+        fee,
+        () => {
+          console.log('MsgVote')
+        },
+      )
     }
   }
 
