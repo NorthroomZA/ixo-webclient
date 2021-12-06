@@ -20,7 +20,10 @@ import {
   selectProjectAddress,
 } from '../store/selector'
 import { Spinner } from 'common/components/Spinner'
-import { getTransactionsByAsset } from 'modules/Account/Account.actions'
+import {
+  getTransactions,
+  getTransactionsByAsset,
+} from 'modules/Account/Account.actions'
 import { RootState } from 'common/redux/types'
 import { selectEntityType } from 'modules/Entities/SelectedEntity/SelectedEntity.selectors'
 import { NoAssets } from './index.style'
@@ -50,6 +53,8 @@ export const Accounts: FunctionComponent = () => {
           accounts.map((balance) => balance['denom']),
         ),
       )
+
+      dispatch(getTransactions(projectAddress))
     }
   }, [projectAddress, accounts])
 
@@ -61,14 +66,13 @@ export const Accounts: FunctionComponent = () => {
 
   const balances = useMemo(() => {
     return accounts.map((account) => ({
-      denom: account['denom'],
+      denom: account['denom'] === 'uixo' ? 'ixo' : account['denom'],
       amount: Number(
         getBalanceNumber(new BigNumber(account['amount'])).toFixed(0),
       ),
-      usdRate: account['denom'] === 'ixo' ? usdRate : 0,
+      usdRate: account['denom'] === 'uixo' ? usdRate : 0,
     }))
-  }, [accounts])
-
+  }, [accounts, usdRate])
   if (accountLoadingState) return <Spinner info="Loading accounts..." />
   return (
     <Fragment>

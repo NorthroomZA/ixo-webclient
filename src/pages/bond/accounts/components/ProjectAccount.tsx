@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import ReactApexChart from 'react-apexcharts'
 import { Currency } from 'types/models'
-import { displayTokenAmount } from 'common/utils/currency.utils'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'common/redux/types'
 import { getMarketChart } from 'modules/Account/Account.actions'
@@ -112,7 +111,7 @@ const InfoWrapper = ({
   size,
 }: InfoWrapperProps): JSX.Element => (
   <InfoWrapperContainer size={size}>
-    <div className="main">{`${displayTokenAmount(amount)}`} </div>
+    <div className="main">{`${amount}`} </div>
     <div className="sub">{subLabel}</div>
   </InfoWrapperContainer>
 )
@@ -178,7 +177,7 @@ export default function ProjectAccount({
     >
       <div className="row m-0">
         <div className={`col-12`}>
-          <StyledLabel className="px-2">{denom}</StyledLabel>
+          <StyledLabel className="px-2">{denom.toUpperCase()}</StyledLabel>
         </div>
       </div>
       <div className="row m-0">
